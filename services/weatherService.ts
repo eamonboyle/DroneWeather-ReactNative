@@ -153,9 +153,25 @@ export class WeatherService {
     ): {
         isSuitable: boolean
         reasons: string[]
+        windSpeedDetails: { height: string; speed: number }[]
+        windGustDetails: { height: string; speed: number }[]
     } {
         const hourData = weather.hourlyData[hourIndex]
         const reasons: string[] = []
+
+        // Collect all wind speeds at different heights
+        const windSpeedDetails = [
+            { height: '10m', speed: hourData.windSpeed10m },
+            { height: '80m', speed: hourData.windSpeed80m },
+            { height: '120m', speed: hourData.windSpeed120m },
+            { height: '180m', speed: hourData.windSpeed180m },
+        ]
+
+        // Currently we only have gusts at 10m, but structure allows for future additions
+        const windGustDetails = [
+            { height: '10m', speed: hourData.windGusts10m },
+            
+        ]
 
         if (hourData.windSpeed10m > 20) {
             reasons.push('Wind speed is too high')
@@ -172,6 +188,8 @@ export class WeatherService {
         return {
             isSuitable: reasons.length === 0,
             reasons,
+            windSpeedDetails,
+            windGustDetails,
         }
     }
 }
