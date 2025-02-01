@@ -38,6 +38,7 @@ export default function TabLayout() {
                         tabBarIcon: ({ color, size }) => (
                             <Ionicons name="build" size={size} color={color} />
                         ),
+                        headerShown: false,
                     }}
                 />
                 <Tabs.Screen
@@ -51,6 +52,7 @@ export default function TabLayout() {
                                 color={color}
                             />
                         ),
+                        headerShown: false,
                     }}
                 />
             </Tabs>

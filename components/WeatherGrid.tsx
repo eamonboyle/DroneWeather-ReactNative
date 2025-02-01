@@ -95,10 +95,7 @@ export function WeatherGrid({ weatherData, hourIndex }: WeatherGridProps) {
                     ? 'safe'
                     : 'unsafe'
             case 'Cloud Cover':
-                if (value <= thresholds.cloudCover.safe) return 'safe'
-                else if (value <= thresholds.cloudCover.warning)
-                    return 'warning'
-                else return 'unsafe'
+                return value < 100 ? 'safe' : 'warning'
             case 'Visibility':
                 if (value >= thresholds.visibility.safe) return 'safe'
                 else if (value >= thresholds.visibility.warning)

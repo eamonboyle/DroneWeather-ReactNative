@@ -8,10 +8,6 @@ export interface WeatherThresholds {
     precipitation: {
         safe: number; // Maximum precipitation considered safe (in mm)
     };
-    cloudCover: {
-        safe: number; // Maximum cloud cover considered safe (in %)
-        warning: number; // Cloud cover threshold for warning (in %)
-    };
     visibility: {
         safe: number; // Minimum visibility considered safe (in m)
         warning: number; // Visibility threshold for warning (in m)
@@ -35,10 +31,6 @@ export const DEFAULT_WEATHER_THRESHOLDS: WeatherThresholds = {
     },
     precipitation: {
         safe: 0,
-    },
-    cloudCover: {
-        safe: 70,
-        warning: 70,
     },
     visibility: {
         safe: 5000,

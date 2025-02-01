@@ -100,7 +100,7 @@ export default function SettingsScreen() {
     return (
         <SafeAreaView className="flex-1 bg-gray-900">
             <ScrollView className="flex-1 p-4">
-                <View className="mb-6">
+                <View className="mb-6 mt-2">
                     <Text className="text-white text-lg font-semibold mb-2">
                         Wind Speed (km/h)
                     </Text>
@@ -128,34 +128,6 @@ export default function SettingsScreen() {
                             value={thresholds.windGusts.safe.toString()}
                             onChangeText={(value) =>
                                 updateThreshold('windGusts', 'safe', value)
-                            }
-                            keyboardType="numeric"
-                        />
-                    </View>
-                </View>
-
-                <View className="mb-6">
-                    <Text className="text-white text-lg font-semibold mb-2">
-                        Cloud Cover (%)
-                    </Text>
-                    <View className="flex-row items-center mb-2">
-                        <Text className="text-white w-20">Safe:</Text>
-                        <TextInput
-                            className="flex-1 bg-gray-800 text-white p-2 rounded"
-                            value={thresholds.cloudCover.safe.toString()}
-                            onChangeText={(value) =>
-                                updateThreshold('cloudCover', 'safe', value)
-                            }
-                            keyboardType="numeric"
-                        />
-                    </View>
-                    <View className="flex-row items-center mb-2">
-                        <Text className="text-white w-20">Warning:</Text>
-                        <TextInput
-                            className="flex-1 bg-gray-800 text-white p-2 rounded"
-                            value={thresholds.cloudCover.warning.toString()}
-                            onChangeText={(value) =>
-                                updateThreshold('cloudCover', 'warning', value)
                             }
                             keyboardType="numeric"
                         />
