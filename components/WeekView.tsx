@@ -3,6 +3,7 @@ import { View, ScrollView, Text, Pressable } from 'react-native'
 import { format } from 'date-fns'
 import { WeatherData, HourlyWeatherData } from '@/types/weather'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
+import { useWeatherConfig } from '@/contexts/WeatherConfigContext'
 
 interface WeekViewProps {
     weatherData: WeatherData
@@ -66,10 +67,16 @@ interface HourCardProps {
 }
 
 function HourCard({ hourData, onPress }: HourCardProps) {
+    const { thresholds } = useWeatherConfig()
+
+    const isWindSafe =
+        thresholds && hourData.windSpeed10m <= thresholds.windSpeed.safe
+    const bgColorClass = isWindSafe ? 'bg-green-800/50' : 'bg-red-800/50'
+
     return (
         <Pressable
             onPress={onPress}
-            className="p-3 m-2 bg-gray-800/50 rounded-lg w-24 items-center"
+            className={`p-3 m-2 ${bgColorClass} rounded-lg w-24 items-center`}
         >
             <Text className="text-white text-sm">
                 {format(hourData.time, 'HH:mm')}
@@ -81,7 +88,7 @@ function HourCard({ hourData, onPress }: HourCardProps) {
                 <MaterialCommunityIcons
                     name="weather-windy"
                     size={16}
-                    color="#60A5FA"
+                    color={isWindSafe ? '#22c55e' : '#ef4444'}
                 />
                 <Text className="text-white text-sm ml-1">
                     {Math.round(hourData.windSpeed10m)} km/h
