@@ -112,6 +112,19 @@ export default function ForecastTable() {
     const timeWidth = 80
     const cellWidth = (screenWidth - timeWidth) / 5 // 5 parameters excluding time (temp, wind, gusts, cloud, rain)
 
+    // Group hours by date
+    const groupedByDay = weatherData.hourlyData.reduce(
+        (acc, hour) => {
+            const date = format(hour.time, 'yyyy-MM-dd')
+            if (!acc[date]) {
+                acc[date] = []
+            }
+            acc[date].push(hour)
+            return acc
+        },
+        {} as Record<string, typeof weatherData.hourlyData>
+    )
+
     return (
         <SafeAreaView className="flex-1 bg-gray-900">
             <View className="flex-row items-center px-4 py-3 bg-gray-800 border-b border-gray-700">
@@ -168,51 +181,74 @@ export default function ForecastTable() {
                         />
                     </View>
 
-                    {/* Data Rows */}
-                    {weatherData.hourlyData.map((hour, index) => (
-                        <View key={index} className="flex-row">
-                            <TableCell
-                                value={format(hour.time, 'HH:mm')}
-                                width={timeWidth}
-                            />
-                            <TableCell
-                                value={formatTemperature(hour.temperature2m)}
-                                isSafe={isTemperatureSafe(hour.temperature2m)}
-                                width={cellWidth}
-                            />
-                            <TableCell
-                                value={formatWindSpeed(hour.windSpeed10m)}
-                                isSafe={isWindSafe(
-                                    hour.windSpeed10m,
-                                    hour.windGusts10m
-                                )}
-                                width={cellWidth}
-                            />
-                            <TableCell
-                                value={formatWindSpeed(hour.windGusts10m)}
-                                isSafe={isWindSafe(
-                                    hour.windSpeed10m,
-                                    hour.windGusts10m
-                                )}
-                                width={cellWidth}
-                            />
-                            <TableCell
-                                value={`${hour.cloudCover}%`}
-                                isSafe={
-                                    hour.cloudCover <=
-                                    thresholds.weather.maxCloudCover
-                                }
-                                width={cellWidth}
-                            />
-                            <TableCell
-                                value={`${hour.precipitationProbability}%`}
-                                isSafe={
-                                    hour.precipitationProbability <=
-                                    thresholds.weather
-                                        .maxPrecipitationProbability
-                                }
-                                width={cellWidth}
-                            />
+                    {/* Data Rows Grouped by Day */}
+                    {Object.entries(groupedByDay).map(([date, hours]) => (
+                        <View key={date}>
+                            {/* Day Header */}
+                            <View
+                                className="flex-row bg-gray-800/50 border-t border-b border-gray-700 py-2 px-4"
+                                style={{ width: screenWidth }}
+                            >
+                                <Text className="text-white font-semibold">
+                                    {format(new Date(date), 'EEEE, MMMM d')}
+                                </Text>
+                            </View>
+
+                            {/* Hours for this day */}
+                            {hours.map((hour, index) => (
+                                <View key={index} className="flex-row">
+                                    <TableCell
+                                        value={format(hour.time, 'HH:mm')}
+                                        width={timeWidth}
+                                    />
+                                    <TableCell
+                                        value={formatTemperature(
+                                            hour.temperature2m
+                                        )}
+                                        isSafe={isTemperatureSafe(
+                                            hour.temperature2m
+                                        )}
+                                        width={cellWidth}
+                                    />
+                                    <TableCell
+                                        value={formatWindSpeed(
+                                            hour.windSpeed10m
+                                        )}
+                                        isSafe={isWindSafe(
+                                            hour.windSpeed10m,
+                                            hour.windGusts10m
+                                        )}
+                                        width={cellWidth}
+                                    />
+                                    <TableCell
+                                        value={formatWindSpeed(
+                                            hour.windGusts10m
+                                        )}
+                                        isSafe={isWindSafe(
+                                            hour.windSpeed10m,
+                                            hour.windGusts10m
+                                        )}
+                                        width={cellWidth}
+                                    />
+                                    <TableCell
+                                        value={`${hour.cloudCover}%`}
+                                        isSafe={
+                                            hour.cloudCover <=
+                                            thresholds.weather.maxCloudCover
+                                        }
+                                        width={cellWidth}
+                                    />
+                                    <TableCell
+                                        value={`${hour.precipitationProbability}%`}
+                                        isSafe={
+                                            hour.precipitationProbability <=
+                                            thresholds.weather
+                                                .maxPrecipitationProbability
+                                        }
+                                        width={cellWidth}
+                                    />
+                                </View>
+                            ))}
                         </View>
                     ))}
                 </View>
