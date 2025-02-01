@@ -112,7 +112,10 @@ export default function Home() {
                         </View>
 
                         {weatherData && (
-                            <WeatherGrid weatherData={weatherData} />
+                            <WeatherGrid
+                                weatherData={weatherData}
+                                hourIndex={selectedHour}
+                            />
                         )}
                     </>
                 )}

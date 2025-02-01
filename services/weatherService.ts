@@ -100,8 +100,6 @@ export class WeatherService {
             },
         }
 
-        console.log('Weather Data', weatherData)
-
         const hourlyData: HourlyWeatherData[] = []
 
         for (let i = 0; i < weatherData.hourly.time.length; i++) {
@@ -146,39 +144,30 @@ export class WeatherService {
 
         return {
             hourlyData,
-            current: {
-                temperature: hourlyData[0].temperature2m,
-                windSpeed: hourlyData[0].windSpeed10m,
-                windGusts: hourlyData[0].windGusts10m,
-                windDirection: hourlyData[0].windDirection10m,
-                precipitation: hourlyData[0].precipitation,
-                cloudCover: hourlyData[0].cloudCover,
-                visibility: hourlyData[0].visibility,
-            },
         }
     }
 
-    static isDroneFlyable(weather: WeatherData): {
+    static isDroneFlyable(
+        weather: WeatherData,
+        hourIndex: number = 0
+    ): {
         isSuitable: boolean
         reasons: string[]
     } {
+        const hourData = weather.hourlyData[hourIndex]
         const reasons: string[] = []
 
-        if (weather.current.windSpeed > 20) {
+        if (hourData.windSpeed10m > 20) {
             reasons.push('Wind speed is too high')
         }
 
-        if (weather.current.windGusts > 30) {
+        if (hourData.windGusts10m > 30) {
             reasons.push('Wind gusts are too strong')
         }
 
-        if (weather.current.precipitation > 0) {
+        if (hourData.precipitation > 0) {
             reasons.push('Precipitation detected')
         }
-
-        // if (weather.cloudCover > 90) {
-        //     reasons.push('Heavy cloud cover')
-        // }
 
         return {
             isSuitable: reasons.length === 0,

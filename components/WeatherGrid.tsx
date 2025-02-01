@@ -4,9 +4,10 @@ import { MaterialCommunityIcons } from '@expo/vector-icons'
 
 interface WeatherGridProps {
     weatherData: WeatherData
+    hourIndex: number
 }
 
-export function WeatherGrid({ weatherData }: WeatherGridProps) {
+export function WeatherGrid({ weatherData, hourIndex }: WeatherGridProps) {
     // Helper function to determine if a specific weather parameter is within acceptable range
     function isParameterSafe(
         parameter: string,
@@ -27,41 +28,43 @@ export function WeatherGrid({ weatherData }: WeatherGridProps) {
         }
     }
 
+    const hourData = weatherData.hourlyData[hourIndex]
+
     const weatherItems = [
         {
             label: 'Temperature',
-            value: `${Number(weatherData.current.temperature).toFixed(2)}°C`,
-            numericValue: weatherData.current.temperature,
+            value: `${Number(hourData.temperature2m).toFixed(2)}°C`,
+            numericValue: hourData.temperature2m,
             icon: 'thermometer',
         },
         {
             label: 'Wind Speed',
-            value: `${Number(weatherData.current.windSpeed).toFixed(2)} km/h`,
-            numericValue: weatherData.current.windSpeed,
+            value: `${Number(hourData.windSpeed10m).toFixed(2)} km/h`,
+            numericValue: hourData.windSpeed10m,
             icon: 'weather-windy',
         },
         {
             label: 'Wind Gusts',
-            value: `${Number(weatherData.current.windGusts).toFixed(2)} km/h`,
-            numericValue: weatherData.current.windGusts,
+            value: `${Number(hourData.windGusts10m).toFixed(2)} km/h`,
+            numericValue: hourData.windGusts10m,
             icon: 'weather-windy-variant',
         },
         {
             label: 'Wind Direction',
-            value: `${Number(weatherData.current.windDirection).toFixed(2)}°`,
-            numericValue: weatherData.current.windDirection,
+            value: `${Number(hourData.windDirection10m).toFixed(2)}°`,
+            numericValue: hourData.windDirection10m,
             icon: 'compass',
         },
         {
             label: 'Precipitation',
-            value: `${Number(weatherData.current.precipitation).toFixed(2)} mm`,
-            numericValue: weatherData.current.precipitation,
+            value: `${Number(hourData.precipitation).toFixed(2)} mm`,
+            numericValue: hourData.precipitation,
             icon: 'water',
         },
         {
             label: 'Cloud Cover',
-            value: `${Number(weatherData.current.cloudCover).toFixed(2)}%`,
-            numericValue: weatherData.current.cloudCover,
+            value: `${Number(hourData.cloudCover).toFixed(2)}%`,
+            numericValue: hourData.cloudCover,
             icon: 'cloud',
         },
     ]

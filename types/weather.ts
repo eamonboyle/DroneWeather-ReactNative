@@ -35,15 +35,6 @@ export interface HourlyWeatherData {
 
 export interface WeatherData {
     hourlyData: HourlyWeatherData[]
-    current: {
-        temperature: number
-        windSpeed: number
-        windGusts: number
-        windDirection: number
-        precipitation: number
-        cloudCover: number
-        visibility: number
-    }
 }
 
 export interface DroneFlightConditions {
