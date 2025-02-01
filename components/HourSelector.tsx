@@ -18,18 +18,23 @@ export function HourSelector({
     const itemWidth = 60 // Width of each hour item
     const scrollViewRef = useRef<ScrollView>(null)
 
+    // Set initial hour when component mounts
     useEffect(() => {
-        // Get current hour if selectedHour is not provided
-        const currentHour = selectedHour ?? new Date().getHours()
+        const currentHour = new Date().getHours()
+        if (selectedHour === 0) {
+            onHourChange(currentHour)
+        }
+    }, [])
 
-        // Add a small delay to ensure the ScrollView is rendered
-        setTimeout(() => {
-            scrollViewRef.current?.scrollTo({
-                x: currentHour * itemWidth,
+    // Handle scrolling whenever selectedHour changes
+    useEffect(() => {
+        if (scrollViewRef.current) {
+            scrollViewRef.current.scrollTo({
+                x: selectedHour * itemWidth,
                 animated: true,
             })
-        }, 100)
-    }, [])
+        }
+    }, [selectedHour])
 
     return (
         <View className={`px-4 ${className}`}>

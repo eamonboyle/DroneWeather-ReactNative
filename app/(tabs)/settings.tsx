@@ -1,4 +1,16 @@
-import { StyleSheet, Image, Platform } from 'react-native'
+import {
+    StyleSheet,
+    Image,
+    Platform,
+    View,
+    TextInput,
+    Alert,
+    Text,
+    Pressable,
+} from 'react-native'
+import { useState, useEffect } from 'react'
+import { SafeAreaView } from 'react-native-safe-area-context'
+import { ScrollView } from 'react-native-gesture-handler'
 
 import { Collapsible } from '@/components/Collapsible'
 import { ExternalLink } from '@/components/ExternalLink'
@@ -6,126 +18,254 @@ import ParallaxScrollView from '@/components/ParallaxScrollView'
 import { ThemedText } from '@/components/ThemedText'
 import { ThemedView } from '@/components/ThemedView'
 import { IconSymbol } from '@/components/ui/IconSymbol'
+import { WeatherThresholds } from '@/types/weatherConfig'
+import { WeatherConfigService } from '@/services/weatherConfigService'
+import { useWeatherConfig } from '@/contexts/WeatherConfigContext'
 
 export default function SettingsScreen() {
+    const [thresholds, setThresholds] = useState<WeatherThresholds | null>(null)
+    const [isLoading, setIsLoading] = useState(true)
+    const { refreshThresholds } = useWeatherConfig()
+
+    useEffect(() => {
+        loadThresholds()
+    }, [])
+
+    const loadThresholds = async () => {
+        try {
+            const loadedThresholds = await WeatherConfigService.getThresholds()
+            setThresholds(loadedThresholds)
+        } catch (error) {
+            Alert.alert('Error', 'Failed to load weather thresholds')
+        } finally {
+            setIsLoading(false)
+        }
+    }
+
+    const handleSave = async () => {
+        if (!thresholds) return
+
+        try {
+            await WeatherConfigService.saveThresholds(thresholds)
+            await refreshThresholds()
+            Alert.alert('Success', 'Weather thresholds saved successfully')
+        } catch (error) {
+            Alert.alert('Error', 'Failed to save weather thresholds')
+        }
+    }
+
+    const handleReset = async () => {
+        try {
+            const defaultThresholds =
+                await WeatherConfigService.resetToDefaults()
+            setThresholds(defaultThresholds)
+            await refreshThresholds()
+            Alert.alert('Success', 'Weather thresholds reset to defaults')
+        } catch (error) {
+            Alert.alert('Error', 'Failed to reset weather thresholds')
+        }
+    }
+
+    const updateThreshold = (
+        category: keyof WeatherThresholds,
+        subcategory: string,
+        value: string
+    ) => {
+        if (!thresholds) return
+
+        const numValue = Number(value)
+        if (isNaN(numValue)) return
+
+        setThresholds({
+            ...thresholds,
+            [category]: {
+                ...thresholds[category],
+                [subcategory]: numValue,
+            },
+        })
+    }
+
+    if (isLoading || !thresholds) {
+        return (
+            <SafeAreaView className="flex-1 bg-gray-900">
+                <View className="flex-1 justify-center items-center">
+                    <Text className="text-white text-lg">
+                        Loading settings...
+                    </Text>
+                </View>
+            </SafeAreaView>
+        )
+    }
+
     return (
-        <ParallaxScrollView
-            headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
-            headerImage={
-                <IconSymbol
-                    size={310}
-                    color="#808080"
-                    name="chevron.left.forwardslash.chevron.right"
-                    style={styles.headerImage}
-                />
-            }
-        >
-            <ThemedView style={styles.titleContainer}>
-                <ThemedText type="title">Settings</ThemedText>
-            </ThemedView>
-            <ThemedText>
-                This app includes example code to help you get started.
-            </ThemedText>
-            <Collapsible title="File-based routing">
-                <ThemedText>
-                    This app has two screens:{' '}
-                    <ThemedText type="defaultSemiBold">
-                        app/(tabs)/index.tsx
-                    </ThemedText>{' '}
-                    and{' '}
-                    <ThemedText type="defaultSemiBold">
-                        app/(tabs)/explore.tsx
-                    </ThemedText>
-                </ThemedText>
-                <ThemedText>
-                    The layout file in{' '}
-                    <ThemedText type="defaultSemiBold">
-                        app/(tabs)/_layout.tsx
-                    </ThemedText>{' '}
-                    sets up the tab navigator.
-                </ThemedText>
-                <ExternalLink href="https://docs.expo.dev/router/introduction">
-                    <ThemedText type="link">Learn more</ThemedText>
-                </ExternalLink>
-            </Collapsible>
-            <Collapsible title="Android, iOS, and web support">
-                <ThemedText>
-                    You can open this project on Android, iOS, and the web. To
-                    open the web version, press{' '}
-                    <ThemedText type="defaultSemiBold">w</ThemedText> in the
-                    terminal running this project.
-                </ThemedText>
-            </Collapsible>
-            <Collapsible title="Images">
-                <ThemedText>
-                    For static images, you can use the{' '}
-                    <ThemedText type="defaultSemiBold">@2x</ThemedText> and{' '}
-                    <ThemedText type="defaultSemiBold">@3x</ThemedText> suffixes
-                    to provide files for different screen densities
-                </ThemedText>
-                <Image
-                    source={require('@/assets/images/react-logo.png')}
-                    style={{ alignSelf: 'center' }}
-                />
-                <ExternalLink href="https://reactnative.dev/docs/images">
-                    <ThemedText type="link">Learn more</ThemedText>
-                </ExternalLink>
-            </Collapsible>
-            <Collapsible title="Custom fonts">
-                <ThemedText>
-                    Open{' '}
-                    <ThemedText type="defaultSemiBold">
-                        app/_layout.tsx
-                    </ThemedText>{' '}
-                    to see how to load{' '}
-                    <ThemedText style={{ fontFamily: 'SpaceMono' }}>
-                        custom fonts such as this one.
-                    </ThemedText>
-                </ThemedText>
-                <ExternalLink href="https://docs.expo.dev/versions/latest/sdk/font">
-                    <ThemedText type="link">Learn more</ThemedText>
-                </ExternalLink>
-            </Collapsible>
-            <Collapsible title="Light and dark mode components">
-                <ThemedText>
-                    This template has light and dark mode support. The{' '}
-                    <ThemedText type="defaultSemiBold">
-                        useColorScheme()
-                    </ThemedText>{' '}
-                    hook lets you inspect what the user's current color scheme
-                    is, and so you can adjust UI colors accordingly.
-                </ThemedText>
-                <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-                    <ThemedText type="link">Learn more</ThemedText>
-                </ExternalLink>
-            </Collapsible>
-            <Collapsible title="Animations">
-                <ThemedText>
-                    This template includes an example of an animated component.
-                    The{' '}
-                    <ThemedText type="defaultSemiBold">
-                        components/HelloWave.tsx
-                    </ThemedText>{' '}
-                    component uses the powerful{' '}
-                    <ThemedText type="defaultSemiBold">
-                        react-native-reanimated
-                    </ThemedText>{' '}
-                    library to create a waving hand animation.
-                </ThemedText>
-                {Platform.select({
-                    ios: (
-                        <ThemedText>
-                            The{' '}
-                            <ThemedText type="defaultSemiBold">
-                                components/ParallaxScrollView.tsx
-                            </ThemedText>{' '}
-                            component provides a parallax effect for the header
-                            image.
-                        </ThemedText>
-                    ),
-                })}
-            </Collapsible>
-        </ParallaxScrollView>
+        <SafeAreaView className="flex-1 bg-gray-900">
+            <ScrollView className="flex-1 p-4">
+                <View className="mb-6">
+                    <Text className="text-white text-lg font-semibold mb-2">
+                        Wind Speed (km/h)
+                    </Text>
+                    <View className="flex-row items-center mb-2">
+                        <Text className="text-white w-20">Safe:</Text>
+                        <TextInput
+                            className="flex-1 bg-gray-800 text-white p-2 rounded"
+                            value={thresholds.windSpeed.safe.toString()}
+                            onChangeText={(value) =>
+                                updateThreshold('windSpeed', 'safe', value)
+                            }
+                            keyboardType="numeric"
+                        />
+                    </View>
+                </View>
+
+                <View className="mb-6">
+                    <Text className="text-white text-lg font-semibold mb-2">
+                        Wind Gusts (km/h)
+                    </Text>
+                    <View className="flex-row items-center mb-2">
+                        <Text className="text-white w-20">Safe:</Text>
+                        <TextInput
+                            className="flex-1 bg-gray-800 text-white p-2 rounded"
+                            value={thresholds.windGusts.safe.toString()}
+                            onChangeText={(value) =>
+                                updateThreshold('windGusts', 'safe', value)
+                            }
+                            keyboardType="numeric"
+                        />
+                    </View>
+                </View>
+
+                <View className="mb-6">
+                    <Text className="text-white text-lg font-semibold mb-2">
+                        Cloud Cover (%)
+                    </Text>
+                    <View className="flex-row items-center mb-2">
+                        <Text className="text-white w-20">Safe:</Text>
+                        <TextInput
+                            className="flex-1 bg-gray-800 text-white p-2 rounded"
+                            value={thresholds.cloudCover.safe.toString()}
+                            onChangeText={(value) =>
+                                updateThreshold('cloudCover', 'safe', value)
+                            }
+                            keyboardType="numeric"
+                        />
+                    </View>
+                    <View className="flex-row items-center mb-2">
+                        <Text className="text-white w-20">Warning:</Text>
+                        <TextInput
+                            className="flex-1 bg-gray-800 text-white p-2 rounded"
+                            value={thresholds.cloudCover.warning.toString()}
+                            onChangeText={(value) =>
+                                updateThreshold('cloudCover', 'warning', value)
+                            }
+                            keyboardType="numeric"
+                        />
+                    </View>
+                </View>
+
+                <View className="mb-6">
+                    <Text className="text-white text-lg font-semibold mb-2">
+                        Visibility (m)
+                    </Text>
+                    <View className="flex-row items-center mb-2">
+                        <Text className="text-white w-20">Safe:</Text>
+                        <TextInput
+                            className="flex-1 bg-gray-800 text-white p-2 rounded"
+                            value={thresholds.visibility.safe.toString()}
+                            onChangeText={(value) =>
+                                updateThreshold('visibility', 'safe', value)
+                            }
+                            keyboardType="numeric"
+                        />
+                    </View>
+                    <View className="flex-row items-center mb-2">
+                        <Text className="text-white w-20">Warning:</Text>
+                        <TextInput
+                            className="flex-1 bg-gray-800 text-white p-2 rounded"
+                            value={thresholds.visibility.warning.toString()}
+                            onChangeText={(value) =>
+                                updateThreshold('visibility', 'warning', value)
+                            }
+                            keyboardType="numeric"
+                        />
+                    </View>
+                </View>
+
+                <View className="mb-6">
+                    <Text className="text-white text-lg font-semibold mb-2">
+                        Humidity (%)
+                    </Text>
+                    <View className="flex-row items-center mb-2">
+                        <Text className="text-white w-20">Safe:</Text>
+                        <TextInput
+                            className="flex-1 bg-gray-800 text-white p-2 rounded"
+                            value={thresholds.humidity.safe.toString()}
+                            onChangeText={(value) =>
+                                updateThreshold('humidity', 'safe', value)
+                            }
+                            keyboardType="numeric"
+                        />
+                    </View>
+                    <View className="flex-row items-center mb-2">
+                        <Text className="text-white w-20">Warning:</Text>
+                        <TextInput
+                            className="flex-1 bg-gray-800 text-white p-2 rounded"
+                            value={thresholds.humidity.warning.toString()}
+                            onChangeText={(value) =>
+                                updateThreshold('humidity', 'warning', value)
+                            }
+                            keyboardType="numeric"
+                        />
+                    </View>
+                </View>
+
+                <View className="mb-6">
+                    <Text className="text-white text-lg font-semibold mb-2">
+                        Rain Chance (%)
+                    </Text>
+                    <View className="flex-row items-center mb-2">
+                        <Text className="text-white w-20">Safe:</Text>
+                        <TextInput
+                            className="flex-1 bg-gray-800 text-white p-2 rounded"
+                            value={thresholds.rainChance.safe.toString()}
+                            onChangeText={(value) =>
+                                updateThreshold('rainChance', 'safe', value)
+                            }
+                            keyboardType="numeric"
+                        />
+                    </View>
+                    <View className="flex-row items-center mb-2">
+                        <Text className="text-white w-20">Warning:</Text>
+                        <TextInput
+                            className="flex-1 bg-gray-800 text-white p-2 rounded"
+                            value={thresholds.rainChance.warning.toString()}
+                            onChangeText={(value) =>
+                                updateThreshold('rainChance', 'warning', value)
+                            }
+                            keyboardType="numeric"
+                        />
+                    </View>
+                </View>
+
+                <View className="flex-row justify-between mb-6">
+                    <Pressable
+                        className="bg-blue-600 px-6 py-3 rounded-lg flex-1 mr-2"
+                        onPress={handleSave}
+                    >
+                        <Text className="text-white text-center font-semibold">
+                            Save Changes
+                        </Text>
+                    </Pressable>
+                    <Pressable
+                        className="bg-red-600 px-6 py-3 rounded-lg flex-1 ml-2"
+                        onPress={handleReset}
+                    >
+                        <Text className="text-white text-center font-semibold">
+                            Reset to Defaults
+                        </Text>
+                    </Pressable>
+                </View>
+            </ScrollView>
+        </SafeAreaView>
     )
 }
 

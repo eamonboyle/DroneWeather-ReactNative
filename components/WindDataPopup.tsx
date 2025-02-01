@@ -1,5 +1,6 @@
 import { View, Text, Modal, Pressable } from 'react-native'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
+import { useWeatherConfig } from '@/contexts/WeatherConfigContext'
 
 interface WindDataPoint {
     height: string
@@ -13,6 +14,7 @@ interface WindDataPopupProps {
     title: string
     icon: keyof typeof MaterialCommunityIcons.glyphMap
     unit?: string
+    type: 'speed' | 'gusts'
 }
 
 export function WindDataPopup({
@@ -22,8 +24,16 @@ export function WindDataPopup({
     title,
     icon,
     unit = 'km/h',
+    type,
 }: WindDataPopupProps) {
-    const isSpeedSafe = (speed: number) => speed <= 35
+    const { thresholds } = useWeatherConfig()
+
+    const isSpeedSafe = (speed: number) => {
+        if (!thresholds) return false
+        return type === 'speed'
+            ? speed <= thresholds.windSpeed.safe
+            : speed <= thresholds.windGusts.safe
+    }
 
     return (
         <Modal

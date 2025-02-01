@@ -1,6 +1,8 @@
 import { fetchWeatherApi } from 'openmeteo'
 import { HourlyWeatherData, WeatherData } from '@/types/weather'
 import { range } from '@/utils/range'
+import { WeatherConfigService } from '@/services/weatherConfigService'
+import { WeatherThresholds } from '@/types/weatherConfig'
 
 export class WeatherService {
     static async getCurrentWeather(
@@ -147,17 +149,18 @@ export class WeatherService {
         }
     }
 
-    static isDroneFlyable(
+    static async isDroneFlyable(
         weather: WeatherData,
         hourIndex: number = 0
-    ): {
+    ): Promise<{
         isSuitable: boolean
         reasons: string[]
         windSpeedDetails: { height: string; speed: number }[]
         windGustDetails: { height: string; speed: number }[]
-    } {
+    }> {
         const hourData = weather.hourlyData[hourIndex]
         const reasons: string[] = []
+        const thresholds = await WeatherConfigService.getThresholds()
 
         // Collect all wind speeds at different heights
         const windSpeedDetails = [
@@ -170,24 +173,35 @@ export class WeatherService {
         // Currently we only have gusts at 10m, but structure allows for future additions
         const windGustDetails = [
             { height: '10m', speed: hourData.windGusts10m },
-            
         ]
 
-        if (hourData.windSpeed10m > 20) {
+        // Critical conditions that affect flight suitability
+        if (hourData.windSpeed10m > thresholds.windSpeed.safe) {
             reasons.push('Wind speed is too high')
         }
 
-        if (hourData.windGusts10m > 30) {
+        if (hourData.windGusts10m > thresholds.windGusts.safe) {
             reasons.push('Wind gusts are too strong')
         }
 
-        if (hourData.precipitation > 0) {
+        if (hourData.precipitation > thresholds.precipitation.safe) {
             reasons.push('Precipitation detected')
         }
 
+        if (hourData.visibility < thresholds.visibility.safe) {
+            reasons.push('Visibility is too low')
+        }
+
+        if (hourData.precipitationProbability > thresholds.rainChance.safe) {
+            reasons.push('High chance of rain')
+        }
+
+        // Informational conditions (don't affect flight suitability)
+        const informationalReasons: string[] = []
+
         return {
-            isSuitable: reasons.length === 0,
-            reasons,
+            isSuitable: reasons.length === 0, // Only critical conditions affect suitability
+            reasons: [...reasons, ...informationalReasons], // Include all reasons for display
             windSpeedDetails,
             windGustDetails,
         }

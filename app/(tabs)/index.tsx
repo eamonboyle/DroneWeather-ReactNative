@@ -13,53 +13,68 @@ export default function Home() {
     const [location, setLocation] = useState<Location.LocationObject | null>(
         null
     )
-    const [locationName, setLocationName] = useState<string>('Current location')
+    const [locationName, setLocationName] = useState<string>('')
     const [weatherData, setWeatherData] = useState<WeatherData | null>(null)
     const [isLoading, setIsLoading] = useState(true)
+    const [selectedHour, setSelectedHour] = useState(0)
     const [flightConditions, setFlightConditions] =
         useState<DroneFlightConditions>({
             isSuitable: false,
             reasons: [],
         })
-    const [selectedHour, setSelectedHour] = useState(() => {
-        const now = new Date()
-        return now.getHours()
-    })
 
-    const handleLocationUpdate = async (
-        newLocation: Location.LocationObject
-    ) => {
+    const handleLocationUpdate = async (location: Location.LocationObject) => {
         setIsLoading(true)
-        setLocation(newLocation)
-
-        // Get location name using reverse geocoding
-        const [placeDetails] = await Location.reverseGeocodeAsync({
-            latitude: newLocation.coords.latitude,
-            longitude: newLocation.coords.longitude,
-        })
-
-        if (placeDetails) {
-            const locationString =
-                placeDetails.city || placeDetails.region || 'Current location'
-            setLocationName(locationString)
-        }
-
-        // Fetch weather data
         try {
+            // Get location name using reverse geocoding
+            const [placeDetails] = await Location.reverseGeocodeAsync({
+                latitude: location.coords.latitude,
+                longitude: location.coords.longitude,
+            })
+
+            if (placeDetails) {
+                const locationString =
+                    placeDetails.city ||
+                    placeDetails.region ||
+                    'Current location'
+                setLocationName(locationString)
+            } else {
+                setLocationName('Current location')
+            }
+
             const weather = await WeatherService.getCurrentWeather(
-                newLocation.coords.latitude,
-                newLocation.coords.longitude
+                location.coords.latitude,
+                location.coords.longitude
             )
             setWeatherData(weather)
-            const conditions = WeatherService.isDroneFlyable(weather)
+            const conditions = await WeatherService.isDroneFlyable(
+                weather,
+                selectedHour
+            )
             setFlightConditions(conditions)
         } catch (error) {
             console.error('Error fetching weather data:', error)
-            Alert.alert('Error', 'Failed to fetch weather data')
+            Alert.alert(
+                'Error',
+                'Failed to fetch weather data. Please try again.'
+            )
         } finally {
             setIsLoading(false)
         }
     }
+
+    useEffect(() => {
+        if (weatherData) {
+            const updateFlightConditions = async () => {
+                const conditions = await WeatherService.isDroneFlyable(
+                    weatherData,
+                    selectedHour
+                )
+                setFlightConditions(conditions)
+            }
+            updateFlightConditions()
+        }
+    }, [weatherData, selectedHour])
 
     useEffect(() => {
         ;(async () => {
