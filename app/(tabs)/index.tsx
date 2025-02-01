@@ -6,6 +6,8 @@ import { WeatherData, DroneFlightConditions } from '@/types/weather'
 import { WeatherService } from '@/services/weatherService'
 import { LocationBar } from '@/components/LocationBar'
 import { WeatherGrid } from '@/components/WeatherGrid'
+import React from 'react'
+import { HourSelector } from '@/components/HourSelector'
 
 export default function Home() {
     const [location, setLocation] = useState<Location.LocationObject | null>(
@@ -19,6 +21,10 @@ export default function Home() {
             isSuitable: false,
             reasons: [],
         })
+    const [selectedHour, setSelectedHour] = useState(() => {
+        const now = new Date()
+        return now.getHours()
+    })
 
     const handleLocationUpdate = async (
         newLocation: Location.LocationObject
@@ -111,6 +117,12 @@ export default function Home() {
                     </>
                 )}
             </View>
+
+            <HourSelector
+                selectedHour={selectedHour}
+                onHourChange={setSelectedHour}
+                className="mb-4"
+            />
         </SafeAreaView>
     )
 }
