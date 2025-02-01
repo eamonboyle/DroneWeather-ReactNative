@@ -6,37 +6,60 @@ export function useLocation() {
         null
     )
     const [locationName, setLocationName] = useState<string>('')
-    const [error, setError] = useState<Error | null>(null)
+    const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
-    const updateLocation = async (newLocation: Location.LocationObject) => {
+    async function updateLocation() {
         try {
-            setLocation(newLocation)
+            // First, request permission
+            const { status } =
+                await Location.requestForegroundPermissionsAsync()
 
-            // Get location name using reverse geocoding
-            const [placeDetails] = await Location.reverseGeocodeAsync({
-                latitude: newLocation.coords.latitude,
-                longitude: newLocation.coords.longitude,
+            if (status !== 'granted') {
+                setErrorMsg('Permission to access location was denied')
+                return
+            }
+
+            // Get current location
+            const currentLocation = await Location.getCurrentPositionAsync({})
+            setLocation(currentLocation)
+
+            // Get location name
+            const [place] = await Location.reverseGeocodeAsync({
+                latitude: currentLocation.coords.latitude,
+                longitude: currentLocation.coords.longitude,
             })
 
-            if (placeDetails) {
-                const locationString =
-                    placeDetails.city ||
-                    placeDetails.region ||
-                    'Current location'
-                setLocationName(locationString)
+            if (place) {
+                const locality =
+                    place.city ||
+                    place.district ||
+                    place.subregion ||
+                    place.region ||
+                    ''
+                const country = place.country || ''
+
+                if (locality && country) {
+                    setLocationName(`${locality}, ${country}`)
+                } else if (locality) {
+                    setLocationName(locality)
+                } else if (country) {
+                    setLocationName(country)
+                } else {
+                    setLocationName('Location name unavailable')
+                }
             } else {
-                setLocationName('Current location')
+                setLocationName('Location name unavailable')
             }
         } catch (error) {
-            setError(error as Error)
             console.error('Error updating location:', error)
+            setErrorMsg('Failed to get location')
         }
     }
 
-    return {
-        location,
-        locationName,
-        error,
-        updateLocation,
-    }
+    // Request location permission and get initial location when component mounts
+    useEffect(() => {
+        updateLocation()
+    }, [])
+
+    return { location, locationName, errorMsg, updateLocation }
 }

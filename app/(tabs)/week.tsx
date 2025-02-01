@@ -7,14 +7,15 @@ import { WeatherData } from '@/types/weather'
 import { useLocation } from '@/hooks/useLocation'
 import * as Location from 'expo-location'
 import { LoadingSpinner } from '@/components/LoadingSpinner'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
 export default function WeekScreen() {
     const [weatherData, setWeatherData] = useState<WeatherData | null>(null)
-    const [selectedHour, setSelectedHour] = useState(24) // Start with first hour of tomorrow
+    const [selectedHour, setSelectedHour] = useState(24)
     const [isLoading, setIsLoading] = useState(true)
     const { location, locationName, updateLocation } = useLocation()
 
-    // Add useEffect to fetch weather data when location changes
+    // Update weather data when location changes
     useEffect(() => {
         if (location) {
             handleLocationUpdate(location)
@@ -41,10 +42,10 @@ export default function WeekScreen() {
     }
 
     return (
-        <View className="flex-1 bg-black">
+        <SafeAreaView className="flex-1 bg-black">
             <LocationBar
                 locationName={locationName}
-                onLocationUpdate={handleLocationUpdate}
+                onLocationUpdate={updateLocation}
             />
             {isLoading ? (
                 <LoadingSpinner />
@@ -54,6 +55,6 @@ export default function WeekScreen() {
                     onHourSelect={setSelectedHour}
                 />
             ) : null}
-        </View>
+        </SafeAreaView>
     )
 }

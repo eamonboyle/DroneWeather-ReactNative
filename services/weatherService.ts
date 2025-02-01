@@ -2,13 +2,23 @@ import { fetchWeatherApi } from 'openmeteo'
 import { HourlyWeatherData, WeatherData } from '@/types/weather'
 import { range } from '@/utils/range'
 import { WeatherConfigService } from '@/services/weatherConfigService'
-import { WeatherThresholds } from '@/types/weatherConfig'
+import { WeatherCacheService } from '@/services/weatherCacheService'
 
 export class WeatherService {
     static async getCurrentWeather(
         latitude: number,
         longitude: number
     ): Promise<WeatherData> {
+        // Try to get cached data first
+        const cachedData = await WeatherCacheService.getCachedWeather(
+            latitude,
+            longitude
+        )
+        if (cachedData) {
+            return cachedData
+        }
+
+        // If no cached data, fetch from API
         const params = {
             latitude: latitude,
             longitude: longitude,
@@ -144,9 +154,14 @@ export class WeatherService {
             })
         }
 
-        return {
+        const result = {
             hourlyData,
         }
+
+        // Cache the fetched data
+        await WeatherCacheService.cacheWeather(result, latitude, longitude)
+
+        return result
     }
 
     static async isDroneFlyable(

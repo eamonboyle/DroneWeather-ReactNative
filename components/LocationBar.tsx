@@ -4,7 +4,7 @@ import * as Location from 'expo-location'
 
 interface LocationBarProps {
     locationName: string
-    onLocationUpdate: (location: Location.LocationObject) => Promise<void>
+    onLocationUpdate: () => Promise<void>
 }
 
 export function LocationBar({
@@ -17,18 +17,7 @@ export function LocationBar({
 
     const handleLocationPress = async () => {
         try {
-            const { status } =
-                await Location.requestForegroundPermissionsAsync()
-            if (status !== 'granted') {
-                Alert.alert(
-                    'Permission denied',
-                    'Location permission is required'
-                )
-                return
-            }
-
-            const location = await Location.getCurrentPositionAsync({})
-            await onLocationUpdate(location)
+            await onLocationUpdate()
         } catch (error) {
             console.error('Error getting location:', error)
             Alert.alert('Error', 'Failed to get current location')

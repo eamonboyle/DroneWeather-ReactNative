@@ -8,12 +8,10 @@ import { LocationBar } from '@/components/LocationBar'
 import { WeatherGrid } from '@/components/WeatherGrid'
 import React from 'react'
 import { HourSelector } from '@/components/HourSelector'
+import { useLocation } from '@/hooks/useLocation'
 
 export default function Home() {
-    const [location, setLocation] = useState<Location.LocationObject | null>(
-        null
-    )
-    const [locationName, setLocationName] = useState<string>('')
+    const { location, locationName, errorMsg, updateLocation } = useLocation()
     const [weatherData, setWeatherData] = useState<WeatherData | null>(null)
     const [isLoading, setIsLoading] = useState(true)
     const [selectedHour, setSelectedHour] = useState(0)
@@ -23,25 +21,15 @@ export default function Home() {
             reasons: [],
         })
 
+    useEffect(() => {
+        if (location) {
+            handleLocationUpdate(location)
+        }
+    }, [location])
+
     const handleLocationUpdate = async (location: Location.LocationObject) => {
         setIsLoading(true)
         try {
-            // Get location name using reverse geocoding
-            const [placeDetails] = await Location.reverseGeocodeAsync({
-                latitude: location.coords.latitude,
-                longitude: location.coords.longitude,
-            })
-
-            if (placeDetails) {
-                const locationString =
-                    placeDetails.city ||
-                    placeDetails.region ||
-                    'Current location'
-                setLocationName(locationString)
-            } else {
-                setLocationName('Current location')
-            }
-
             const weather = await WeatherService.getCurrentWeather(
                 location.coords.latitude,
                 location.coords.longitude
@@ -86,7 +74,7 @@ export default function Home() {
             }
 
             const location = await Location.getCurrentPositionAsync({})
-            await handleLocationUpdate(location)
+            await updateLocation()
         })()
     }, [])
 
@@ -94,7 +82,7 @@ export default function Home() {
         <SafeAreaView className="flex-1 bg-black">
             <LocationBar
                 locationName={locationName}
-                onLocationUpdate={handleLocationUpdate}
+                onLocationUpdate={updateLocation}
             />
 
             <View className="flex-1 p-4">
