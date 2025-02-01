@@ -1,4 +1,11 @@
-import { View, Text, Alert, ActivityIndicator, Animated } from 'react-native'
+import {
+    View,
+    Text,
+    Alert,
+    ActivityIndicator,
+    Animated,
+    Pressable,
+} from 'react-native'
 import { useEffect, useState, useRef } from 'react'
 import * as Location from 'expo-location'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -11,10 +18,13 @@ import { HourSelector } from '@/components/HourSelector'
 import { useLocation } from '@/hooks/useLocation'
 import { LinearGradient } from 'expo-linear-gradient'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
+import { useRouter } from 'expo-router'
+import { useWeatherData } from '@/contexts/WeatherDataContext'
 
 export default function Home() {
+    const router = useRouter()
     const { location, locationName, errorMsg, updateLocation } = useLocation()
-    const [weatherData, setWeatherData] = useState<WeatherData | null>(null)
+    const { weatherData, setWeatherData } = useWeatherData()
     const [isLoading, setIsLoading] = useState(true)
     const [selectedHour, setSelectedHour] = useState(0)
     const [flightConditions, setFlightConditions] =
@@ -238,6 +248,26 @@ export default function Home() {
                         className="mb-4"
                     />
                 </Animated.View>
+
+                {weatherData && (
+                    <Pressable
+                        onPress={() => {
+                            // Store weather data in global state or context instead
+                            router.push('/forecast-table')
+                        }}
+                        className="mx-4 mb-4 bg-blue-600 p-4 rounded-xl flex-row items-center justify-center"
+                    >
+                        <MaterialCommunityIcons
+                            name="table"
+                            size={24}
+                            color="white"
+                            style={{ marginRight: 8 }}
+                        />
+                        <Text className="text-white text-lg font-semibold">
+                            View Forecast Table
+                        </Text>
+                    </Pressable>
+                )}
             </Animated.View>
         </SafeAreaView>
     )
