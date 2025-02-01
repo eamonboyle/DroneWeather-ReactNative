@@ -1,4 +1,4 @@
-import { View, Text, Alert } from 'react-native'
+import { View, Text, Alert, ActivityIndicator } from 'react-native'
 import { useEffect, useState } from 'react'
 import * as Location from 'expo-location'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -13,6 +13,7 @@ export default function Home() {
     )
     const [locationName, setLocationName] = useState<string>('Current location')
     const [weatherData, setWeatherData] = useState<WeatherData | null>(null)
+    const [isLoading, setIsLoading] = useState(true)
     const [flightConditions, setFlightConditions] =
         useState<DroneFlightConditions>({
             isSuitable: false,
@@ -22,6 +23,7 @@ export default function Home() {
     const handleLocationUpdate = async (
         newLocation: Location.LocationObject
     ) => {
+        setIsLoading(true)
         setLocation(newLocation)
 
         // Get location name using reverse geocoding
@@ -48,6 +50,8 @@ export default function Home() {
         } catch (error) {
             console.error('Error fetching weather data:', error)
             Alert.alert('Error', 'Failed to fetch weather data')
+        } finally {
+            setIsLoading(false)
         }
     }
 
@@ -73,24 +77,39 @@ export default function Home() {
             />
 
             <View className="flex-1 p-4">
-                <View
-                    className={`p-4 rounded-lg mb-4 ${
-                        flightConditions.isSuitable ? 'bg-safe' : 'bg-danger'
-                    }`}
-                >
-                    <Text className="text-2xl text-white text-center">
-                        {flightConditions.isSuitable
-                            ? 'Safe to fly'
-                            : 'Not suitable for flying'}
-                    </Text>
-                    {flightConditions.reasons.length > 0 && (
-                        <Text className="text-white text-center mt-2">
-                            {flightConditions.reasons.join(', ')}
+                {isLoading ? (
+                    <View className="flex-1 justify-center items-center">
+                        <Text className="text-white text-lg mb-2">
+                            Loading weather data...
                         </Text>
-                    )}
-                </View>
+                        <ActivityIndicator size="large" color="#ffffff" />
+                    </View>
+                ) : (
+                    <>
+                        <View
+                            className={`p-4 rounded-lg mb-4 ${
+                                flightConditions.isSuitable
+                                    ? 'bg-safe'
+                                    : 'bg-danger'
+                            }`}
+                        >
+                            <Text className="text-2xl text-white text-center">
+                                {flightConditions.isSuitable
+                                    ? 'Safe to fly'
+                                    : 'Not suitable for flying'}
+                            </Text>
+                            {flightConditions.reasons.length > 0 && (
+                                <Text className="text-white text-center mt-2">
+                                    {flightConditions.reasons.join(', ')}
+                                </Text>
+                            )}
+                        </View>
 
-                {weatherData && <WeatherGrid weatherData={weatherData} />}
+                        {weatherData && (
+                            <WeatherGrid weatherData={weatherData} />
+                        )}
+                    </>
+                )}
             </View>
         </SafeAreaView>
     )

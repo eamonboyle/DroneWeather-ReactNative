@@ -1,5 +1,6 @@
 import { View, Text } from 'react-native'
 import { WeatherData } from '@/types/weather'
+import { MaterialCommunityIcons } from '@expo/vector-icons'
 
 interface WeatherGridProps {
     weatherData: WeatherData
@@ -31,31 +32,37 @@ export function WeatherGrid({ weatherData }: WeatherGridProps) {
             label: 'Temperature',
             value: `${Number(weatherData.temperature).toFixed(2)}°C`,
             numericValue: weatherData.temperature,
+            icon: 'thermometer',
         },
         {
             label: 'Wind Speed',
             value: `${Number(weatherData.windSpeed).toFixed(2)} km/h`,
             numericValue: weatherData.windSpeed,
+            icon: 'weather-windy',
         },
         {
             label: 'Wind Gusts',
             value: `${Number(weatherData.windGusts).toFixed(2)} km/h`,
             numericValue: weatherData.windGusts,
+            icon: 'weather-windy-variant',
         },
         {
             label: 'Wind Direction',
             value: `${Number(weatherData.windDirection).toFixed(2)}°`,
             numericValue: weatherData.windDirection,
+            icon: 'compass',
         },
         {
             label: 'Precipitation',
             value: `${Number(weatherData.precipitation).toFixed(2)} mm`,
             numericValue: weatherData.precipitation,
+            icon: 'water',
         },
         {
             label: 'Cloud Cover',
             value: `${Number(weatherData.cloudCover).toFixed(2)}%`,
             numericValue: weatherData.cloudCover,
+            icon: 'cloud',
         },
     ]
 
@@ -75,10 +82,18 @@ export function WeatherGrid({ weatherData }: WeatherGridProps) {
                         key={item.label}
                         className={`p-4 rounded-lg flex-1 min-w-[30%] ${bgColor}`}
                     >
-                        <Text className="text-white text-sm opacity-75">
-                            {item.label}
-                        </Text>
-                        <Text className="text-white text-lg font-semibold mt-1">
+                        <View className="items-center">
+                            <MaterialCommunityIcons
+                                name={item.icon as any}
+                                size={24}
+                                color="white"
+                                style={{ opacity: 0.75 }}
+                            />
+                            <Text className="text-white text-sm opacity-75 mt-1">
+                                {item.label}
+                            </Text>
+                        </View>
+                        <Text className="text-white text-lg font-semibold mt-2 text-center">
                             {item.value}
                         </Text>
                     </View>
