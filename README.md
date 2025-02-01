@@ -1,50 +1,74 @@
-# Welcome to your Expo app 👋
+# Drone Weather App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A mobile application built with React Native and Expo that helps drone pilots determine safe flying conditions based on weather data. The app provides real-time weather information and customizable safety thresholds for various weather parameters.
 
-## Get started
+## Features
 
-1. Install dependencies
+- Real-time weather data for your current location
+- Customizable safety thresholds for:
+  - Temperature
+  - Wind Speed and Gusts
+  - Cloud Cover
+  - Precipitation Probability
+- Visual indicators for safe/unsafe conditions
+- Hourly forecast view
+- Detailed table view for weekly forecast
+- Unit conversion support (metric/imperial)
+- Location-based weather updates
+- Beautiful, modern UI with dark theme
+
+## TODO:
+- [ ] Make forecase header row / day sticky, so you can see when scrolling
+- [ ] Fix Week view load times
+- [ ] Create some app tools
+- [ ] Allow user to change location (needs location search functionality)
+- [ ] Select drone profiles for default settings such as Wind speed - need to research the data for this
+
+## Getting Started
+
+1. Install dependencies:
 
     ```bash
     npm install
     ```
 
-2. Start the app
+2. Start the development server:
 
     ```bash
-     npx expo start
+    npx expo start
     ```
 
-In the output, you'll find options to open the app in a
+3. Run on your preferred platform:
+- Press 'a' for Android
+- Press 'i' for iOS
+- Scan QR code with Expo Go app on your device
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## Technology Stack
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+- React Native
+- Expo
+- TypeScript
+- TailwindCSS (NativeWind)
+- React Navigation
+- Expo Router
+- date-fns for date formatting
+- React Native Reanimated for animations
 
-## Get a fresh project
+## Configuration
 
-When you're ready, run:
+The app allows customization of weather thresholds through the settings screen:
 
-```bash
-npm run reset-project
-```
+- Temperature range (°C/°F)
+- Maximum wind speed (km/h / mph)
+- Maximum wind gusts
+- Maximum cloud cover percentage
+- Maximum precipitation probability
+- Minimum visibility
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Contributing
 
-## Learn more
+Feel free to submit issues and enhancement requests.
 
-To learn more about developing your project with Expo, look at the following resources:
+## License
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+This project is licensed under the MIT License - see the LICENSE file for details.
