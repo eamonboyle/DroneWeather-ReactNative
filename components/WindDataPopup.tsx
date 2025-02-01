@@ -31,8 +31,8 @@ export function WindDataPopup({
     const isSpeedSafe = (speed: number) => {
         if (!thresholds) return false
         return type === 'speed'
-            ? speed <= thresholds.windSpeed.safe
-            : speed <= thresholds.windGusts.safe
+            ? speed <= thresholds.windSpeed.max
+            : speed <= thresholds.windGust.max
     }
 
     return (

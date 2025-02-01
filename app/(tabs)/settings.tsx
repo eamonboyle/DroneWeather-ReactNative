@@ -200,6 +200,17 @@ export default function SettingsScreen() {
                             handleValueChange('windSpeed', 'unit', unit)
                         }
                     />
+                    <SettingsSlider
+                        icon="weather-windy-variant"
+                        label="Maximum Wind Gust"
+                        value={thresholds.windGust.max}
+                        onValueChange={(value) =>
+                            handleValueChange('windGust', 'max', value)
+                        }
+                        minimumValue={0}
+                        maximumValue={100}
+                        unit={thresholds.windSpeed.unit}
+                    />
                 </View>
 
                 <View className="mb-2">

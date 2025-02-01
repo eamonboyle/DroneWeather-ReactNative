@@ -1,21 +1,24 @@
 export interface WeatherThresholds {
     temperature: {
-        unit: 'celsius' | 'fahrenheit';
-        min: number;
-        max: number;
-    };
+        unit: 'celsius' | 'fahrenheit'
+        min: number
+        max: number
+    }
     windSpeed: {
-        unit: 'kmh' | 'mph';
-        max: number;
-    };
+        unit: 'kmh' | 'mph'
+        max: number
+    }
+    windGust: {
+        max: number
+    }
     visibility: {
-        unit: 'kilometers' | 'miles';
-        min: number;
-    };
+        unit: 'kilometers' | 'miles'
+        min: number
+    }
     weather: {
-        maxCloudCover: number; // percentage
-        maxPrecipitationProbability: number; // percentage
-    };
+        maxCloudCover: number // percentage
+        maxPrecipitationProbability: number // percentage
+    }
 }
 
 export const DEFAULT_WEATHER_THRESHOLDS: WeatherThresholds = {
@@ -28,6 +31,9 @@ export const DEFAULT_WEATHER_THRESHOLDS: WeatherThresholds = {
         unit: 'kmh',
         max: 20,
     },
+    windGust: {
+        max: 40,
+    },
     visibility: {
         unit: 'kilometers',
         min: 5,
@@ -36,4 +42,4 @@ export const DEFAULT_WEATHER_THRESHOLDS: WeatherThresholds = {
         maxCloudCover: 100,
         maxPrecipitationProbability: 50,
     },
-}; 
+}

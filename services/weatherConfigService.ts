@@ -29,6 +29,11 @@ function ensureCompleteThresholds(
                 partialThresholds.windSpeed?.max ??
                 DEFAULT_WEATHER_THRESHOLDS.windSpeed.max,
         },
+        windGust: {
+            max:
+                partialThresholds.windGust?.max ??
+                DEFAULT_WEATHER_THRESHOLDS.windGust.max,
+        },
         visibility: {
             unit:
                 partialThresholds.visibility?.unit ??
