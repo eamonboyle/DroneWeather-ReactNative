@@ -4,6 +4,42 @@ import { range } from '@/utils/range'
 import { WeatherConfigService } from '@/services/weatherConfigService'
 import { WeatherCacheService } from '@/services/weatherCacheService'
 
+function convertTemperature(
+    value: number,
+    fromUnit: 'celsius' | 'fahrenheit',
+    toUnit: 'celsius' | 'fahrenheit'
+): number {
+    if (fromUnit === toUnit) return value
+    if (fromUnit === 'celsius' && toUnit === 'fahrenheit') {
+        return (value * 9) / 5 + 32
+    }
+    return ((value - 32) * 5) / 9
+}
+
+function convertSpeed(
+    value: number,
+    fromUnit: 'kmh' | 'mph',
+    toUnit: 'kmh' | 'mph'
+): number {
+    if (fromUnit === toUnit) return value
+    if (fromUnit === 'kmh' && toUnit === 'mph') {
+        return value * 0.621371
+    }
+    return value * 1.60934
+}
+
+function convertDistance(
+    value: number,
+    fromUnit: 'kilometers' | 'miles',
+    toUnit: 'kilometers' | 'miles'
+): number {
+    if (fromUnit === toUnit) return value
+    if (fromUnit === 'kilometers' && toUnit === 'miles') {
+        return value * 0.621371
+    }
+    return value * 1.60934
+}
+
 export class WeatherService {
     static async getCurrentWeather(
         latitude: number,
@@ -175,50 +211,126 @@ export class WeatherService {
     }> {
         const hourData = weather.hourlyData[hourIndex]
         const reasons: string[] = []
-        const thresholds = await WeatherConfigService.getThresholds()
 
-        // Collect all wind speeds at different heights
-        const windSpeedDetails = [
-            { height: '10m', speed: hourData.windSpeed10m },
-            { height: '80m', speed: hourData.windSpeed80m },
-            { height: '120m', speed: hourData.windSpeed120m },
-            { height: '180m', speed: hourData.windSpeed180m },
-        ]
+        try {
+            const thresholds = await WeatherConfigService.getThresholds()
+            if (!thresholds) {
+                throw new Error('Weather thresholds not available')
+            }
 
-        // Currently we only have gusts at 10m, but structure allows for future additions
-        const windGustDetails = [
-            { height: '10m', speed: hourData.windGusts10m },
-        ]
+            // Temperature check
+            const temp = hourData.temperature2m
+            if (
+                thresholds.temperature?.unit &&
+                typeof thresholds.temperature?.min === 'number' &&
+                typeof thresholds.temperature?.max === 'number'
+            ) {
+                const minTemp =
+                    thresholds.temperature.unit === 'fahrenheit'
+                        ? convertTemperature(
+                              thresholds.temperature.min,
+                              'fahrenheit',
+                              'celsius'
+                          )
+                        : thresholds.temperature.min
+                const maxTemp =
+                    thresholds.temperature.unit === 'fahrenheit'
+                        ? convertTemperature(
+                              thresholds.temperature.max,
+                              'fahrenheit',
+                              'celsius'
+                          )
+                        : thresholds.temperature.max
 
-        // Critical conditions that affect flight suitability
-        if (hourData.windSpeed10m > thresholds.windSpeed.safe) {
-            reasons.push('Wind speed is too high')
-        }
+                if (temp < minTemp || temp > maxTemp) {
+                    reasons.push(
+                        `Temperature (${temp}°C) is outside safe range (${minTemp}°C - ${maxTemp}°C)`
+                    )
+                }
+            }
 
-        if (hourData.windGusts10m > thresholds.windGusts.safe) {
-            reasons.push('Wind gusts are too strong')
-        }
+            // Wind speed check
+            if (
+                thresholds.windSpeed?.unit &&
+                typeof thresholds.windSpeed?.max === 'number'
+            ) {
+                const maxWindSpeed =
+                    thresholds.windSpeed.unit === 'mph'
+                        ? convertSpeed(thresholds.windSpeed.max, 'mph', 'kmh')
+                        : thresholds.windSpeed.max
 
-        if (hourData.precipitation > thresholds.precipitation.safe) {
-            reasons.push('Precipitation detected')
-        }
+                if (hourData.windSpeed10m > maxWindSpeed) {
+                    reasons.push('Wind speed is too high')
+                }
+            }
 
-        if (hourData.visibility < thresholds.visibility.safe) {
-            reasons.push('Visibility is too low')
-        }
+            // Collect all wind speeds at different heights
+            const windSpeedDetails = [
+                { height: '10m', speed: hourData.windSpeed10m },
+                { height: '80m', speed: hourData.windSpeed80m },
+                { height: '120m', speed: hourData.windSpeed120m },
+                { height: '180m', speed: hourData.windSpeed180m },
+            ]
 
-        if (hourData.precipitationProbability > thresholds.rainChance.safe) {
-            reasons.push('High chance of rain')
-        }
+            // Currently we only have gusts at 10m, but structure allows for future additions
+            const windGustDetails = [
+                { height: '10m', speed: hourData.windGusts10m },
+            ]
 
-        // Informational conditions (don't affect flight suitability)
-        const informationalReasons: string[] = []
+            // Visibility check
+            if (
+                thresholds.visibility?.unit &&
+                typeof thresholds.visibility?.min === 'number'
+            ) {
+                const minVisibility =
+                    thresholds.visibility.unit === 'miles'
+                        ? convertDistance(
+                              thresholds.visibility.min,
+                              'miles',
+                              'kilometers'
+                          ) * 1000 // Convert to meters
+                        : thresholds.visibility.min * 1000 // Convert km to meters
 
-        return {
-            isSuitable: reasons.length === 0, // Only critical conditions affect suitability
-            reasons: [...reasons, ...informationalReasons], // Include all reasons for display
-            windSpeedDetails,
-            windGustDetails,
+                if (hourData.visibility < minVisibility) {
+                    reasons.push('Visibility is too low')
+                }
+            }
+
+            // Weather conditions
+            if (
+                thresholds.weather &&
+                typeof thresholds.weather.maxCloudCover === 'number' &&
+                typeof thresholds.weather.maxPrecipitationProbability ===
+                    'number'
+            ) {
+                if (hourData.cloudCover > thresholds.weather.maxCloudCover) {
+                    reasons.push('Cloud cover is too high')
+                }
+
+                if (
+                    hourData.precipitationProbability >
+                    thresholds.weather.maxPrecipitationProbability
+                ) {
+                    reasons.push('High chance of precipitation')
+                }
+            }
+
+            return {
+                isSuitable: reasons.length === 0,
+                reasons,
+                windSpeedDetails,
+                windGustDetails,
+            }
+        } catch (error) {
+            console.error('Error checking drone flyability:', error)
+            return {
+                isSuitable: false,
+                reasons: [
+                    'Unable to determine flight conditions due to configuration error',
+                ],
+                windSpeedDetails: [],
+                windGustDetails: [],
+            }
         }
     }
 }

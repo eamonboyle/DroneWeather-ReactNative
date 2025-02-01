@@ -1,16 +1,28 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
-import { WeatherThresholds } from '@/types/weatherConfig'
+import {
+    WeatherThresholds,
+    DEFAULT_WEATHER_THRESHOLDS,
+} from '@/types/weatherConfig'
 import { WeatherConfigService } from '@/services/weatherConfigService'
 
 interface WeatherConfigContextType {
-    thresholds: WeatherThresholds | null;
-    refreshThresholds: () => Promise<void>;
+    thresholds: WeatherThresholds
+    refreshThresholds: () => Promise<void>
+    updateThresholds: (newThresholds: WeatherThresholds) => Promise<void>
 }
 
-const WeatherConfigContext = createContext<WeatherConfigContextType | undefined>(undefined)
+const WeatherConfigContext = createContext<
+    WeatherConfigContextType | undefined
+>(undefined)
 
-export function WeatherConfigProvider({ children }: { children: React.ReactNode }) {
-    const [thresholds, setThresholds] = useState<WeatherThresholds | null>(null)
+export function WeatherConfigProvider({
+    children,
+}: {
+    children: React.ReactNode
+}) {
+    const [thresholds, setThresholds] = useState<WeatherThresholds>(
+        DEFAULT_WEATHER_THRESHOLDS
+    )
 
     const refreshThresholds = async () => {
         try {
@@ -18,6 +30,17 @@ export function WeatherConfigProvider({ children }: { children: React.ReactNode 
             setThresholds(loadedThresholds)
         } catch (error) {
             console.error('Error refreshing thresholds:', error)
+            setThresholds(DEFAULT_WEATHER_THRESHOLDS)
+        }
+    }
+
+    const updateThresholds = async (newThresholds: WeatherThresholds) => {
+        try {
+            await WeatherConfigService.saveThresholds(newThresholds)
+            setThresholds(newThresholds)
+        } catch (error) {
+            console.error('Error updating thresholds:', error)
+            setThresholds(DEFAULT_WEATHER_THRESHOLDS)
         }
     }
 
@@ -26,7 +49,9 @@ export function WeatherConfigProvider({ children }: { children: React.ReactNode 
     }, [])
 
     return (
-        <WeatherConfigContext.Provider value={{ thresholds, refreshThresholds }}>
+        <WeatherConfigContext.Provider
+            value={{ thresholds, refreshThresholds, updateThresholds }}
+        >
             {children}
         </WeatherConfigContext.Provider>
     )
@@ -35,7 +60,9 @@ export function WeatherConfigProvider({ children }: { children: React.ReactNode 
 export function useWeatherConfig() {
     const context = useContext(WeatherConfigContext)
     if (context === undefined) {
-        throw new Error('useWeatherConfig must be used within a WeatherConfigProvider')
+        throw new Error(
+            'useWeatherConfig must be used within a WeatherConfigProvider'
+        )
     }
     return context
-} 
+}

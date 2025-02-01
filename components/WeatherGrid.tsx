@@ -87,29 +87,24 @@ export function WeatherGrid({ weatherData, hourIndex }: WeatherGridProps) {
 
         switch (parameter) {
             case 'Wind Speed':
-                return value <= thresholds.windSpeed.safe ? 'safe' : 'unsafe'
-            case 'Wind Gusts':
-                return value <= thresholds.windGusts.safe ? 'safe' : 'unsafe'
-            case 'Precipitation':
-                return value <= thresholds.precipitation.safe
+                return value <= thresholds.windSpeed.max ? 'safe' : 'unsafe'
+            case 'Temperature':
+                return value >= thresholds.temperature.min &&
+                    value <= thresholds.temperature.max
                     ? 'safe'
                     : 'unsafe'
             case 'Cloud Cover':
-                return value < 100 ? 'safe' : 'warning'
+                return value <= thresholds.weather.maxCloudCover
+                    ? 'safe'
+                    : 'warning'
             case 'Visibility':
-                if (value >= thresholds.visibility.safe) return 'safe'
-                else if (value >= thresholds.visibility.warning)
-                    return 'warning'
-                else return 'unsafe'
-            case 'Humidity':
-                if (value <= thresholds.humidity.safe) return 'safe'
-                else if (value <= thresholds.humidity.warning) return 'warning'
-                else return 'unsafe'
-            case 'Rain Chance':
-                if (value <= thresholds.rainChance.safe) return 'safe'
-                else if (value <= thresholds.rainChance.warning)
-                    return 'warning'
-                else return 'unsafe'
+                return value >= thresholds.visibility.min * 1000
+                    ? 'safe'
+                    : 'unsafe'
+            case 'Precipitation Probability':
+                return value <= thresholds.weather.maxPrecipitationProbability
+                    ? 'safe'
+                    : 'unsafe'
             default:
                 return 'safe'
         }
@@ -130,15 +125,22 @@ export function WeatherGrid({ weatherData, hourIndex }: WeatherGridProps) {
     const weatherItems = [
         {
             label: 'Temperature',
-            value: `${Number(hourData.temperature2m).toFixed(2)}°C`,
+            value:
+                thresholds.temperature.unit === 'fahrenheit'
+                    ? `${((hourData.temperature2m * 9) / 5 + 32).toFixed(1)}°F`
+                    : `${hourData.temperature2m.toFixed(1)}°C`,
             numericValue: hourData.temperature2m,
             icon: 'thermometer',
         },
         {
             label: 'Wind Speed',
-            value: `${Number(hourData.windSpeed10m).toFixed(2)} km/h`,
+            value:
+                thresholds.windSpeed.unit === 'mph'
+                    ? `${(hourData.windSpeed10m * 0.621371).toFixed(1)} mph`
+                    : `${hourData.windSpeed10m.toFixed(1)} km/h`,
             numericValue: hourData.windSpeed10m,
             icon: 'weather-windy',
+            onPress: () => handleWindPress('speed'),
         },
         {
             label: 'Wind Gusts',
@@ -160,13 +162,16 @@ export function WeatherGrid({ weatherData, hourIndex }: WeatherGridProps) {
         },
         {
             label: 'Cloud Cover',
-            value: `${Number(hourData.cloudCover).toFixed(2)}%`,
+            value: `${hourData.cloudCover.toFixed(0)}%`,
             numericValue: hourData.cloudCover,
-            icon: 'cloud',
+            icon: 'weather-cloudy',
         },
         {
             label: 'Visibility',
-            value: `${Number(hourData.visibility).toFixed(0)} m`,
+            value:
+                thresholds.visibility.unit === 'miles'
+                    ? `${((hourData.visibility / 1000) * 0.621371).toFixed(1)} mi`
+                    : `${(hourData.visibility / 1000).toFixed(1)} km`,
             numericValue: hourData.visibility,
             icon: 'eye',
         },
@@ -178,7 +183,7 @@ export function WeatherGrid({ weatherData, hourIndex }: WeatherGridProps) {
         },
         {
             label: 'Rain Chance',
-            value: `${Number(hourData.precipitationProbability).toFixed(0)}%`,
+            value: `${hourData.precipitationProbability.toFixed(0)}%`,
             numericValue: hourData.precipitationProbability,
             icon: 'weather-pouring',
         },

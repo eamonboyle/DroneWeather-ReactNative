@@ -69,9 +69,26 @@ interface HourCardProps {
 function HourCard({ hourData, onPress }: HourCardProps) {
     const { thresholds } = useWeatherConfig()
 
-    const isWindSafe =
-        thresholds && hourData.windSpeed10m <= thresholds.windSpeed.safe
+    // Convert wind speed to the correct unit if needed
+    const windSpeed =
+        thresholds.windSpeed.unit === 'mph'
+            ? hourData.windSpeed10m * 0.621371 // Convert to mph
+            : hourData.windSpeed10m // Keep as km/h
+
+    const isWindSafe = thresholds && windSpeed <= thresholds.windSpeed.max
     const bgColorClass = isWindSafe ? 'bg-green-800/50' : 'bg-red-800/50'
+
+    // Format temperature based on unit preference
+    const temperature =
+        thresholds.temperature.unit === 'fahrenheit'
+            ? ((hourData.temperature2m * 9) / 5 + 32).toFixed(0) + '°F'
+            : hourData.temperature2m.toFixed(0) + '°C'
+
+    // Format wind speed based on unit preference
+    const windSpeedDisplay =
+        thresholds.windSpeed.unit === 'mph'
+            ? `${windSpeed.toFixed(0)} mph`
+            : `${windSpeed.toFixed(0)} km/h`
 
     return (
         <Pressable
@@ -82,7 +99,7 @@ function HourCard({ hourData, onPress }: HourCardProps) {
                 {format(hourData.time, 'HH:mm')}
             </Text>
             <Text className="text-white text-lg font-bold mt-1">
-                {Math.round(hourData.temperature2m)}°C
+                {temperature}
             </Text>
             <View className="flex-row items-center mt-1">
                 <MaterialCommunityIcons
@@ -91,7 +108,7 @@ function HourCard({ hourData, onPress }: HourCardProps) {
                     color={isWindSafe ? '#22c55e' : '#ef4444'}
                 />
                 <Text className="text-white text-sm ml-1">
-                    {Math.round(hourData.windSpeed10m)} km/h
+                    {windSpeedDisplay}
                 </Text>
             </View>
         </Pressable>

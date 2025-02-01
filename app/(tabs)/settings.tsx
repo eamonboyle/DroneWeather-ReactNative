@@ -19,9 +19,13 @@ import ParallaxScrollView from '@/components/ParallaxScrollView'
 import { ThemedText } from '@/components/ThemedText'
 import { ThemedView } from '@/components/ThemedView'
 import { IconSymbol } from '@/components/ui/IconSymbol'
-import { WeatherThresholds } from '@/types/weatherConfig'
+import {
+    WeatherThresholds,
+    DEFAULT_WEATHER_THRESHOLDS,
+} from '@/types/weatherConfig'
 import { WeatherConfigService } from '@/services/weatherConfigService'
 import { useWeatherConfig } from '@/contexts/WeatherConfigContext'
+import { SettingsSlider } from '@/components/SettingsSlider'
 
 interface SettingItemProps {
     icon: keyof typeof MaterialCommunityIcons.glyphMap
@@ -74,9 +78,11 @@ function SettingItem({
 }
 
 export default function SettingsScreen() {
-    const [thresholds, setThresholds] = useState<WeatherThresholds | null>(null)
+    const [thresholds, setThresholds] = useState<WeatherThresholds>(
+        DEFAULT_WEATHER_THRESHOLDS
+    )
     const [isLoading, setIsLoading] = useState(true)
-    const { refreshThresholds } = useWeatherConfig()
+    const { refreshThresholds, updateThresholds } = useWeatherConfig()
 
     useEffect(() => {
         loadThresholds()
@@ -87,21 +93,12 @@ export default function SettingsScreen() {
             const loadedThresholds = await WeatherConfigService.getThresholds()
             setThresholds(loadedThresholds)
         } catch (error) {
+            console.error('Error loading thresholds:', error)
             Alert.alert('Error', 'Failed to load weather thresholds')
+            // Use default thresholds if loading fails
+            setThresholds(DEFAULT_WEATHER_THRESHOLDS)
         } finally {
             setIsLoading(false)
-        }
-    }
-
-    const handleSave = async () => {
-        if (!thresholds) return
-
-        try {
-            await WeatherConfigService.saveThresholds(thresholds)
-            await refreshThresholds()
-            Alert.alert('Success', 'Weather thresholds saved successfully')
-        } catch (error) {
-            Alert.alert('Error', 'Failed to save weather thresholds')
         }
     }
 
@@ -110,33 +107,33 @@ export default function SettingsScreen() {
             const defaultThresholds =
                 await WeatherConfigService.resetToDefaults()
             setThresholds(defaultThresholds)
-            await refreshThresholds()
+            await updateThresholds(defaultThresholds)
             Alert.alert('Success', 'Weather thresholds reset to defaults')
         } catch (error) {
+            console.error('Error resetting thresholds:', error)
             Alert.alert('Error', 'Failed to reset weather thresholds')
+            // Use default thresholds if reset fails
+            setThresholds(DEFAULT_WEATHER_THRESHOLDS)
         }
     }
 
-    const updateThreshold = (
+    const handleValueChange = (
         category: keyof WeatherThresholds,
-        subcategory: string,
-        value: string
+        field: string,
+        value: number | string
     ) => {
-        if (!thresholds) return
-
-        const numValue = Number(value)
-        if (isNaN(numValue)) return
-
-        setThresholds({
+        const newThresholds = {
             ...thresholds,
             [category]: {
                 ...thresholds[category],
-                [subcategory]: numValue,
+                [field]: value,
             },
-        })
+        }
+        setThresholds(newThresholds)
+        updateThresholds(newThresholds)
     }
 
-    if (isLoading || !thresholds) {
+    if (isLoading) {
         return (
             <SafeAreaView className="flex-1 bg-gray-900">
                 <View className="flex-1 justify-center items-center">
@@ -153,114 +150,113 @@ export default function SettingsScreen() {
             <ScrollView className="flex-1 px-4">
                 <View className="mt-4 mb-2">
                     <Text className="text-blue-400 text-lg mb-1">
-                        Wind Settings
+                        Temperature
                     </Text>
-                    <SettingItem
+                    <SettingsSlider
+                        icon="thermometer"
+                        label="Minimum Temperature"
+                        value={thresholds.temperature.min}
+                        onValueChange={(value) =>
+                            handleValueChange('temperature', 'min', value)
+                        }
+                        minimumValue={0}
+                        maximumValue={100}
+                        units={['celsius', 'fahrenheit']}
+                        selectedUnit={thresholds.temperature.unit}
+                        onUnitChange={(unit) =>
+                            handleValueChange('temperature', 'unit', unit)
+                        }
+                        unit="°"
+                    />
+                    <SettingsSlider
+                        icon="thermometer"
+                        label="Maximum Temperature"
+                        value={thresholds.temperature.max}
+                        onValueChange={(value) =>
+                            handleValueChange('temperature', 'max', value)
+                        }
+                        minimumValue={0}
+                        maximumValue={100}
+                        unit="°"
+                    />
+                </View>
+
+                <View className="mb-2">
+                    <Text className="text-blue-400 text-lg mb-1">
+                        Wind Speed
+                    </Text>
+                    <SettingsSlider
                         icon="weather-windy"
                         label="Maximum Wind Speed"
-                        sublabel="Maximum safe wind speed for drone flight"
-                        value={thresholds.windSpeed.safe.toString()}
-                        onChangeText={(value) =>
-                            updateThreshold('windSpeed', 'safe', value)
+                        value={thresholds.windSpeed.max}
+                        onValueChange={(value) =>
+                            handleValueChange('windSpeed', 'max', value)
                         }
-                        unit="km/h"
-                    />
-                    <SettingItem
-                        icon="weather-windy-variant"
-                        label="Maximum Wind Gusts"
-                        sublabel="Maximum safe wind gust speed"
-                        value={thresholds.windGusts.safe.toString()}
-                        onChangeText={(value) =>
-                            updateThreshold('windGusts', 'safe', value)
+                        minimumValue={0}
+                        maximumValue={100}
+                        units={['kmh', 'mph']}
+                        selectedUnit={thresholds.windSpeed.unit}
+                        onUnitChange={(unit) =>
+                            handleValueChange('windSpeed', 'unit', unit)
                         }
-                        unit="km/h"
                     />
                 </View>
 
                 <View className="mb-2">
                     <Text className="text-blue-400 text-lg mb-1">
-                        Visibility Settings
+                        Visibility
                     </Text>
-                    <SettingItem
+                    <SettingsSlider
                         icon="eye"
-                        label="Safe Visibility"
-                        sublabel="Minimum safe visibility distance"
-                        value={thresholds.visibility.safe.toString()}
-                        onChangeText={(value) =>
-                            updateThreshold('visibility', 'safe', value)
+                        label="Minimum Visibility"
+                        value={thresholds.visibility.min}
+                        onValueChange={(value) =>
+                            handleValueChange('visibility', 'min', value)
                         }
-                        unit="m"
-                    />
-                    <SettingItem
-                        icon="eye-outline"
-                        label="Warning Visibility"
-                        sublabel="Minimum visibility before warning"
-                        value={thresholds.visibility.warning.toString()}
-                        onChangeText={(value) =>
-                            updateThreshold('visibility', 'warning', value)
+                        minimumValue={0}
+                        maximumValue={50}
+                        step={5}
+                        units={['kilometers', 'miles']}
+                        selectedUnit={thresholds.visibility.unit}
+                        onUnitChange={(unit) =>
+                            handleValueChange('visibility', 'unit', unit)
                         }
-                        unit="m"
                     />
                 </View>
 
                 <View className="mb-2">
-                    <Text className="text-blue-400 text-lg mb-1">
-                        Weather Conditions
-                    </Text>
-                    <SettingItem
-                        icon="water-percent"
-                        label="Safe Humidity"
-                        value={thresholds.humidity.safe.toString()}
-                        onChangeText={(value) =>
-                            updateThreshold('humidity', 'safe', value)
+                    <Text className="text-blue-400 text-lg mb-1">Weather</Text>
+                    <SettingsSlider
+                        icon="weather-cloudy"
+                        label="Maximum Cloud Cover"
+                        value={thresholds.weather.maxCloudCover}
+                        onValueChange={(value) =>
+                            handleValueChange('weather', 'maxCloudCover', value)
                         }
+                        minimumValue={0}
+                        maximumValue={100}
                         unit="%"
                     />
-                    <SettingItem
-                        icon="water-percent"
-                        label="Warning Humidity"
-                        value={thresholds.humidity.warning.toString()}
-                        onChangeText={(value) =>
-                            updateThreshold('humidity', 'warning', value)
-                        }
-                        unit="%"
-                    />
-                    <SettingItem
+                    <SettingsSlider
                         icon="weather-pouring"
-                        label="Safe Rain Chance"
-                        value={thresholds.rainChance.safe.toString()}
-                        onChangeText={(value) =>
-                            updateThreshold('rainChance', 'safe', value)
+                        label="Maximum Precipitation Probability"
+                        value={thresholds.weather.maxPrecipitationProbability}
+                        onValueChange={(value) =>
+                            handleValueChange(
+                                'weather',
+                                'maxPrecipitationProbability',
+                                value
+                            )
                         }
-                        unit="%"
-                    />
-                    <SettingItem
-                        icon="weather-pouring"
-                        label="Warning Rain Chance"
-                        value={thresholds.rainChance.warning.toString()}
-                        onChangeText={(value) =>
-                            updateThreshold('rainChance', 'warning', value)
-                        }
+                        minimumValue={0}
+                        maximumValue={100}
                         unit="%"
                     />
                 </View>
 
-                <View className="flex-row justify-between mb-6 mt-4">
+                <View className="flex-row justify-center mb-6 mt-4">
                     <Pressable
-                        className="bg-blue-600 px-6 py-4 rounded-lg flex-1 mr-2 flex-row items-center justify-center"
-                        onPress={handleSave}
-                    >
-                        <MaterialCommunityIcons
-                            name="content-save"
-                            size={24}
-                            color="white"
-                        />
-                        <Text className="text-white text-lg font-semibold ml-2">
-                            Save Changes
-                        </Text>
-                    </Pressable>
-                    <Pressable
-                        className="bg-red-600 px-6 py-4 rounded-lg flex-1 ml-2 flex-row items-center justify-center"
+                        className="bg-red-600 px-6 py-4 rounded-lg flex-row items-center justify-center"
                         onPress={handleReset}
                     >
                         <MaterialCommunityIcons
@@ -269,7 +265,7 @@ export default function SettingsScreen() {
                             color="white"
                         />
                         <Text className="text-white text-lg font-semibold ml-2">
-                            Reset
+                            Reset to Defaults
                         </Text>
                     </Pressable>
                 </View>
