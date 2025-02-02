@@ -6,10 +6,10 @@ A mobile application built with React Native and Expo that helps drone pilots de
 
 - Real-time weather data for your current location
 - Customizable safety thresholds for:
-  - Temperature
-  - Wind Speed and Gusts
-  - Cloud Cover
-  - Precipitation Probability
+    - Temperature
+    - Wind Speed and Gusts
+    - Cloud Cover
+    - Precipitation Probability
 - Visual indicators for safe/unsafe conditions
 - Hourly forecast view
 - Detailed table view for weekly forecast
@@ -18,6 +18,7 @@ A mobile application built with React Native and Expo that helps drone pilots de
 - Beautiful, modern UI with dark theme
 
 ## TODO:
+
 - [x] Create a refresh button that refreshes location & weather
 - [x] Make forecast header row / day sticky, so you can see when scrolling
 - [x] Fix Week view load times
@@ -41,6 +42,7 @@ A mobile application built with React Native and Expo that helps drone pilots de
     ```
 
 3. Run on your preferred platform:
+
 - Press 'a' for Android
 - Press 'i' for iOS
 - Scan QR code with Expo Go app on your device

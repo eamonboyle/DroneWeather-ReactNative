@@ -6,9 +6,15 @@ interface WeatherDataContextType {
     setWeatherData: (data: WeatherData | null) => void
 }
 
-const WeatherDataContext = createContext<WeatherDataContextType | undefined>(undefined)
+const WeatherDataContext = createContext<WeatherDataContextType | undefined>(
+    undefined
+)
 
-export function WeatherDataProvider({ children }: { children: React.ReactNode }) {
+export function WeatherDataProvider({
+    children,
+}: {
+    children: React.ReactNode
+}) {
     const [weatherData, setWeatherData] = useState<WeatherData | null>(null)
 
     return (
@@ -21,7 +27,9 @@ export function WeatherDataProvider({ children }: { children: React.ReactNode })
 export function useWeatherData() {
     const context = useContext(WeatherDataContext)
     if (context === undefined) {
-        throw new Error('useWeatherData must be used within a WeatherDataProvider')
+        throw new Error(
+            'useWeatherData must be used within a WeatherDataProvider'
+        )
     }
     return context
-} 
+}
