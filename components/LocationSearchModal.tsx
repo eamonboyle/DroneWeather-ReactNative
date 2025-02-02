@@ -51,4 +51,4 @@ export function LocationSearchModal({
             </TouchableWithoutFeedback>
         </Modal>
     )
-} 
+}
