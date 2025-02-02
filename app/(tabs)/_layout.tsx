@@ -46,11 +46,11 @@ export default function TabLayout() {
                     }}
                 />
                 <Tabs.Screen
-                    name="tools"
+                    name="forecast"
                     options={{
-                        title: 'Tools',
+                        title: 'Forecast',
                         tabBarIcon: ({ color, size }) => (
-                            <Ionicons name="build" size={size} color={color} />
+                            <Ionicons name="cloud" size={size} color={color} />
                         ),
                         headerShown: false,
                     }}

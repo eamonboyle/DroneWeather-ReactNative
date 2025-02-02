@@ -4,12 +4,11 @@ import {
     Alert,
     ActivityIndicator,
     Animated,
-    Pressable,
 } from 'react-native'
 import { useEffect, useState, useRef } from 'react'
 import * as Location from 'expo-location'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { WeatherData, DroneFlightConditions } from '@/types/weather'
+import { DroneFlightConditions } from '@/types/weather'
 import { WeatherService } from '@/services/weatherService'
 import { LocationBar } from '@/components/LocationBar'
 import { WeatherGrid } from '@/components/WeatherGrid'
@@ -245,26 +244,6 @@ export default function Home() {
                         className="mb-4"
                     />
                 </Animated.View>
-
-                {weatherData && (
-                    <Pressable
-                        onPress={() => {
-                            // Store weather data in global state or context instead
-                            router.push('/forecast-table')
-                        }}
-                        className="mx-4 mb-4 bg-blue-600 p-4 rounded-xl flex-row items-center justify-center"
-                    >
-                        <MaterialCommunityIcons
-                            name="table"
-                            size={24}
-                            color="white"
-                            style={{ marginRight: 8 }}
-                        />
-                        <Text className="text-white text-lg font-semibold">
-                            View Forecast Table
-                        </Text>
-                    </Pressable>
-                )}
             </Animated.View>
         </SafeAreaView>
     )

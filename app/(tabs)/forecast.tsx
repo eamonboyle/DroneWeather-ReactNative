@@ -1,10 +1,4 @@
-import {
-    View,
-    Text,
-    ScrollView,
-    Pressable,
-    useWindowDimensions,
-} from 'react-native'
+import { View, Text, ScrollView, useWindowDimensions } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
@@ -13,6 +7,8 @@ import { useWeatherConfig } from '@/contexts/WeatherConfigContext'
 import { useWeatherData } from '@/contexts/WeatherDataContext'
 import { LocationBar } from '@/components/LocationBar'
 import { useLocation } from '@/contexts/LocationContext'
+import { LoadingSpinner } from '@/components/LoadingSpinner'
+import { useEffect, useState } from 'react'
 
 interface TableCellProps {
     value?: string | number
@@ -66,10 +62,36 @@ export default function ForecastTable() {
     const { thresholds } = useWeatherConfig()
     const { weatherData } = useWeatherData()
     const { width: screenWidth } = useWindowDimensions()
+    const [isLoading, setIsLoading] = useState(true)
+
+    useEffect(() => {
+        // Simulate a short loading state to ensure smooth transition
+        const timer = setTimeout(() => {
+            setIsLoading(false)
+        }, 500)
+        return () => clearTimeout(timer)
+    }, [])
+
+    if (isLoading) {
+        return (
+            <SafeAreaView className="flex-1 bg-gray-900">
+                <LocationBar locationName={locationName} />
+                <LoadingSpinner text="Loading forecast data..." />
+            </SafeAreaView>
+        )
+    }
 
     if (!weatherData) {
-        router.back()
-        return null
+        return (
+            <SafeAreaView className="flex-1 bg-gray-900">
+                <LocationBar locationName={locationName} />
+                <View className="flex-1 justify-center items-center">
+                    <Text className="text-white text-lg">
+                        No weather data available
+                    </Text>
+                </View>
+            </SafeAreaView>
+        )
     }
 
     const formatWindSpeed = (speed: number) => {
@@ -127,19 +149,6 @@ export default function ForecastTable() {
 
     return (
         <SafeAreaView className="flex-1 bg-gray-900">
-            <View className="flex-row items-center px-4 py-3 bg-gray-800 border-b border-gray-700">
-                <Pressable onPress={() => router.back()} className="mr-3">
-                    <MaterialCommunityIcons
-                        name="arrow-left"
-                        size={24}
-                        color="white"
-                    />
-                </Pressable>
-                <Text className="text-white text-xl font-semibold">
-                    Forecast in Table
-                </Text>
-            </View>
-
             <LocationBar locationName={locationName} />
 
             {/* Headers - Now outside ScrollView to stay fixed */}
