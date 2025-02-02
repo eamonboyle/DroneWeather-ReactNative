@@ -19,7 +19,7 @@ import ParallaxScrollView from '@/components/ParallaxScrollView'
 import { ThemedText } from '@/components/ThemedText'
 import { ThemedView } from '@/components/ThemedView'
 import { IconSymbol } from '@/components/ui/IconSymbol'
-import { LocationSearch } from '@/components/LocationSearch'
+import { LocationBar } from '@/components/LocationBar'
 import { DroneProfileSelector } from '@/components/DroneProfileSelector'
 import {
     WeatherThresholds,
@@ -27,6 +27,7 @@ import {
 } from '@/types/weatherConfig'
 import { WeatherConfigService } from '@/services/weatherConfigService'
 import { useWeatherConfig } from '@/contexts/WeatherConfigContext'
+import { useLocation } from '@/contexts/LocationContext'
 import { SettingsSlider } from '@/components/SettingsSlider'
 import { DroneProfile } from '@/types/droneProfiles'
 
@@ -88,6 +89,7 @@ export default function SettingsScreen() {
         useState<DroneProfile | null>(null)
     const [isLoading, setIsLoading] = useState(true)
     const { refreshThresholds, updateThresholds } = useWeatherConfig()
+    const { locationName } = useLocation()
 
     useEffect(() => {
         loadThresholds()
@@ -163,12 +165,8 @@ export default function SettingsScreen() {
 
     return (
         <SafeAreaView className="flex-1 bg-gray-900">
-            <ScrollView className="flex-1 px-4">
-                <View className="mt-4 mb-6">
-                    <Text className="text-blue-400 text-lg mb-2">Location</Text>
-                    <LocationSearch />
-                </View>
-
+            <LocationBar locationName={locationName || 'Select Location'} />
+            <ScrollView className="flex-1 px-4 pt-4">
                 <DroneProfileSelector
                     selectedProfile={selectedDroneProfile}
                     onSelectProfile={handleDroneProfileSelect}
