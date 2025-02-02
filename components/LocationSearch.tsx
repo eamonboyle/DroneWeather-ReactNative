@@ -16,7 +16,11 @@ import { useWeatherData } from '@/contexts/WeatherDataContext'
 import { WeatherService } from '@/services/weatherService'
 import { useLocation } from '@/contexts/LocationContext'
 
-export function LocationSearch() {
+interface LocationSearchProps {
+    onLocationSelected?: () => void
+}
+
+export function LocationSearch({ onLocationSelected }: LocationSearchProps) {
     const [searchQuery, setSearchQuery] = useState('')
     const [results, setResults] = useState<LocationSearchResult[]>([])
     const [isLoading, setIsLoading] = useState(false)
@@ -60,8 +64,6 @@ export function LocationSearch() {
             // Update the location context with the selected location
             await updateLocation(mockLocation)
 
-            console.log(result)
-
             // Fetch new weather data for the selected location
             const weather = await WeatherService.getCurrentWeather(
                 result.latitude,
@@ -72,6 +74,9 @@ export function LocationSearch() {
             // Clear the search results
             setResults([])
             setSearchQuery('')
+
+            // Call the onLocationSelected callback if provided
+            onLocationSelected?.()
         } catch (err) {
             setError('Failed to update location. Please try again.')
             console.error(err)

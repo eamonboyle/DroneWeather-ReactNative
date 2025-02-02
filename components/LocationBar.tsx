@@ -5,6 +5,8 @@ import { useState } from 'react'
 import { useLocation } from '@/contexts/LocationContext'
 import { useWeatherData } from '@/contexts/WeatherDataContext'
 import { WeatherService } from '@/services/weatherService'
+import { LocationSearchModal } from './LocationSearchModal'
+import React from 'react'
 
 interface LocationBarProps {
     locationName: string
@@ -12,11 +14,12 @@ interface LocationBarProps {
 
 export function LocationBar({ locationName }: LocationBarProps) {
     const [isLoading, setIsLoading] = useState(false)
+    const [isSearchModalVisible, setIsSearchModalVisible] = useState(false)
     const { updateLocation } = useLocation()
     const { setWeatherData } = useWeatherData()
 
     const handleSearchPress = () => {
-        Alert.alert('Search', 'Search for a location')
+        setIsSearchModalVisible(true)
     }
 
     const handleLocationPress = async () => {
@@ -53,31 +56,38 @@ export function LocationBar({ locationName }: LocationBarProps) {
     }
 
     return (
-        <View className="flex-row items-center justify-between px-4 py-2 border-b border-gray-800">
-            <Pressable
-                onPress={handleSearchPress}
-                className="w-10 h-10 items-center justify-center"
-            >
-                <Ionicons name="search" size={24} color="#3b82f6" />
-            </Pressable>
+        <>
+            <View className="flex-row items-center justify-between px-4 py-2 border-b border-gray-800">
+                <Pressable
+                    onPress={handleSearchPress}
+                    className="w-10 h-10 items-center justify-center"
+                >
+                    <Ionicons name="search" size={24} color="#3b82f6" />
+                </Pressable>
 
-            <View className="flex-1 items-center">
-                <Text className="text-blue-500 text-xl font-semibold">
-                    {locationName}
-                </Text>
+                <View className="flex-1 items-center">
+                    <Text className="text-blue-500 text-xl font-semibold">
+                        {locationName}
+                    </Text>
+                </View>
+
+                <Pressable
+                    onPress={handleLocationPress}
+                    className="w-10 h-10 items-center justify-center"
+                    disabled={isLoading}
+                >
+                    {isLoading ? (
+                        <ActivityIndicator size="small" color="#3b82f6" />
+                    ) : (
+                        <Ionicons name="locate" size={24} color="#3b82f6" />
+                    )}
+                </Pressable>
             </View>
 
-            <Pressable
-                onPress={handleLocationPress}
-                className="w-10 h-10 items-center justify-center"
-                disabled={isLoading}
-            >
-                {isLoading ? (
-                    <ActivityIndicator size="small" color="#3b82f6" />
-                ) : (
-                    <Ionicons name="locate" size={24} color="#3b82f6" />
-                )}
-            </Pressable>
-        </View>
+            <LocationSearchModal
+                visible={isSearchModalVisible}
+                onClose={() => setIsSearchModalVisible(false)}
+            />
+        </>
     )
 }
