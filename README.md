@@ -21,9 +21,10 @@ A mobile application built with React Native and Expo that helps drone pilots de
 - [x] Create a refresh button that refreshes location & weather
 - [x] Make forecast header row / day sticky, so you can see when scrolling
 - [x] Fix Week view load times
-- [ ] Create some app tools
 - [x] Allow user to change location (needs location search functionality)
 - [ ] Select drone profiles for default settings such as Wind speed - need to research the data for this
+- [ ] Fix bug with hour selector not functioning
+- [ ] Fix weird behaviour with location search modal not selecting city when you click
 
 ## Getting Started
 

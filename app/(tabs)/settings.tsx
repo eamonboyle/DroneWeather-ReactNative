@@ -20,6 +20,7 @@ import { ThemedText } from '@/components/ThemedText'
 import { ThemedView } from '@/components/ThemedView'
 import { IconSymbol } from '@/components/ui/IconSymbol'
 import { LocationSearch } from '@/components/LocationSearch'
+import { DroneProfileSelector } from '@/components/DroneProfileSelector'
 import {
     WeatherThresholds,
     DEFAULT_WEATHER_THRESHOLDS,
@@ -27,6 +28,7 @@ import {
 import { WeatherConfigService } from '@/services/weatherConfigService'
 import { useWeatherConfig } from '@/contexts/WeatherConfigContext'
 import { SettingsSlider } from '@/components/SettingsSlider'
+import { DroneProfile } from '@/types/droneProfiles'
 
 interface SettingItemProps {
     icon: keyof typeof MaterialCommunityIcons.glyphMap
@@ -82,6 +84,8 @@ export default function SettingsScreen() {
     const [thresholds, setThresholds] = useState<WeatherThresholds>(
         DEFAULT_WEATHER_THRESHOLDS
     )
+    const [selectedDroneProfile, setSelectedDroneProfile] =
+        useState<DroneProfile | null>(null)
     const [isLoading, setIsLoading] = useState(true)
     const { refreshThresholds, updateThresholds } = useWeatherConfig()
 
@@ -96,7 +100,6 @@ export default function SettingsScreen() {
         } catch (error) {
             console.error('Error loading thresholds:', error)
             Alert.alert('Error', 'Failed to load weather thresholds')
-            // Use default thresholds if loading fails
             setThresholds(DEFAULT_WEATHER_THRESHOLDS)
         } finally {
             setIsLoading(false)
@@ -108,13 +111,25 @@ export default function SettingsScreen() {
             const defaultThresholds =
                 await WeatherConfigService.resetToDefaults()
             setThresholds(defaultThresholds)
+            setSelectedDroneProfile(null)
             await updateThresholds(defaultThresholds)
             Alert.alert('Success', 'Weather thresholds reset to defaults')
         } catch (error) {
             console.error('Error resetting thresholds:', error)
             Alert.alert('Error', 'Failed to reset weather thresholds')
-            // Use default thresholds if reset fails
             setThresholds(DEFAULT_WEATHER_THRESHOLDS)
+        }
+    }
+
+    const handleDroneProfileSelect = async (profile: DroneProfile) => {
+        try {
+            setSelectedDroneProfile(profile)
+            setThresholds(profile.thresholds)
+            await updateThresholds(profile.thresholds)
+            Alert.alert('Success', `Applied ${profile.name} profile settings`)
+        } catch (error) {
+            console.error('Error applying drone profile:', error)
+            Alert.alert('Error', 'Failed to apply drone profile settings')
         }
     }
 
@@ -153,6 +168,11 @@ export default function SettingsScreen() {
                     <Text className="text-blue-400 text-lg mb-2">Location</Text>
                     <LocationSearch />
                 </View>
+
+                <DroneProfileSelector
+                    selectedProfile={selectedDroneProfile}
+                    onSelectProfile={handleDroneProfileSelect}
+                />
 
                 <View className="mt-4 mb-2">
                     <Text className="text-blue-400 text-lg mb-1">
