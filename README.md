@@ -27,6 +27,10 @@ A mobile application built with React Native and Expo that helps drone pilots de
 - [ ] Fix bug with hour selector not functioning
 - [ ] Fix weird behaviour with location search modal not selecting city when you click
 
+## Links
+- [Expo Build Reference - APK](https://docs.expo.dev/build-reference/apk/)
+- [OpenCage API - Geocoding](https://opencagedata.com/)
+
 ## Getting Started
 
 1. Install dependencies:
