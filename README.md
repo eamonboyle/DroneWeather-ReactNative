@@ -19,7 +19,7 @@ A mobile application built with React Native and Expo that helps drone pilots de
 
 ## TODO:
 - [x] Create a refresh button that refreshes location & weather
-- [ ] Make forecase header row / day sticky, so you can see when scrolling
+- [x] Make forecast header row / day sticky, so you can see when scrolling
 - [ ] Fix Week view load times
 - [ ] Create some app tools
 - [ ] Allow user to change location (needs location search functionality)
