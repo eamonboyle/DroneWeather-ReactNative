@@ -8,7 +8,7 @@ import {
     ScrollView,
 } from 'react-native'
 import {
-    searchLocations,
+    LocationSearchService,
     LocationSearchResult,
 } from '@/services/locationSearchService'
 import * as Location from 'expo-location'
@@ -35,7 +35,8 @@ export function LocationSearch({ onLocationSelected }: LocationSearchProps) {
         setError(null)
 
         try {
-            const searchResults = await searchLocations(searchQuery)
+            const searchResults =
+                await LocationSearchService.searchLocations(searchQuery)
             setResults(searchResults)
         } catch (err) {
             setError('Failed to search locations. Please try again.')

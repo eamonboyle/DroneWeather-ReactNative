@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { WeatherData } from '@/types/weather'
 
+// Types
 interface CachedWeatherData {
     data: WeatherData
     timestamp: number
@@ -8,33 +9,75 @@ interface CachedWeatherData {
     longitude: number
 }
 
-const CACHE_KEY = 'weather_data_cache'
-const CACHE_DURATION = 60 * 60 * 1000 // 60 minutes in milliseconds
+interface CacheValidationResult {
+    isValid: boolean
+    data?: WeatherData
+}
 
+// Constants
+const CONFIG = {
+    CACHE_KEY: 'weather_data_cache',
+    CACHE_DURATION: 60 * 60 * 1000, // 60 minutes in milliseconds
+    LOCATION_THRESHOLD: 0.001, // Approximately 100 meters
+} as const
+
+// Helper Functions
+async function readFromCache(): Promise<CachedWeatherData | null> {
+    try {
+        const cachedData = await AsyncStorage.getItem(CONFIG.CACHE_KEY)
+        return cachedData ? JSON.parse(cachedData) : null
+    } catch (error) {
+        console.error('Error reading from cache:', error)
+        return null
+    }
+}
+
+function isLocationMatch(
+    cached: { latitude: number; longitude: number },
+    current: { latitude: number; longitude: number }
+): boolean {
+    return (
+        Math.abs(cached.latitude - current.latitude) <=
+            CONFIG.LOCATION_THRESHOLD &&
+        Math.abs(cached.longitude - current.longitude) <=
+            CONFIG.LOCATION_THRESHOLD
+    )
+}
+
+function isCacheExpired(timestamp: number): boolean {
+    return Date.now() - timestamp > CONFIG.CACHE_DURATION
+}
+
+function validateCache(
+    cached: CachedWeatherData | null,
+    latitude: number,
+    longitude: number
+): CacheValidationResult {
+    if (!cached) {
+        return { isValid: false }
+    }
+
+    const isExpired = isCacheExpired(cached.timestamp)
+    const locationMatches = isLocationMatch(cached, { latitude, longitude })
+
+    return {
+        isValid: !isExpired && locationMatches,
+        data: !isExpired && locationMatches ? cached.data : undefined,
+    }
+}
+
+// Main Service
 export class WeatherCacheService {
     static async getCachedWeather(
         latitude: number,
         longitude: number
     ): Promise<WeatherData | null> {
         try {
-            const cachedData = await AsyncStorage.getItem(CACHE_KEY)
-            if (!cachedData) return null
-
-            const parsed: CachedWeatherData = JSON.parse(cachedData)
-            const now = Date.now()
-
-            // Check if cache is expired or location is different
-            if (
-                now - parsed.timestamp > CACHE_DURATION ||
-                Math.abs(parsed.latitude - latitude) > 0.001 ||
-                Math.abs(parsed.longitude - longitude) > 0.001
-            ) {
-                return null
-            }
-
-            return parsed.data
+            const cached = await readFromCache()
+            const { isValid, data } = validateCache(cached, latitude, longitude)
+            return isValid ? data! : null
         } catch (error) {
-            console.error('Error reading weather cache:', error)
+            console.error('Error getting cached weather:', error)
             return null
         }
     }
@@ -51,17 +94,48 @@ export class WeatherCacheService {
                 latitude,
                 longitude,
             }
-            await AsyncStorage.setItem(CACHE_KEY, JSON.stringify(cacheData))
+            await AsyncStorage.setItem(
+                CONFIG.CACHE_KEY,
+                JSON.stringify(cacheData)
+            )
         } catch (error) {
             console.error('Error caching weather data:', error)
+            throw new Error('Failed to cache weather data')
         }
     }
 
     static async clearCache(): Promise<void> {
         try {
-            await AsyncStorage.removeItem(CACHE_KEY)
+            await AsyncStorage.removeItem(CONFIG.CACHE_KEY)
         } catch (error) {
             console.error('Error clearing weather cache:', error)
+            throw new Error('Failed to clear weather cache')
+        }
+    }
+
+    static async getCacheStatus(): Promise<{
+        hasCache: boolean
+        isExpired: boolean | null
+        timestamp: number | null
+    }> {
+        try {
+            const cached = await readFromCache()
+            if (!cached) {
+                return {
+                    hasCache: false,
+                    isExpired: null,
+                    timestamp: null,
+                }
+            }
+
+            return {
+                hasCache: true,
+                isExpired: isCacheExpired(cached.timestamp),
+                timestamp: cached.timestamp,
+            }
+        } catch (error) {
+            console.error('Error getting cache status:', error)
+            throw new Error('Failed to get cache status')
         }
     }
 }
