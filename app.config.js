@@ -18,6 +18,7 @@ module.exports = {
             supportsTablet: true,
         },
         android: {
+            package: 'com.eamonsdiary.droneweather',
             adaptiveIcon: {
                 foregroundImage: './assets/images/adaptive-icon.png',
                 backgroundColor: '#ffffff',
@@ -45,6 +46,9 @@ module.exports = {
         },
         extra: {
             opencageApiKey: process.env.OPENCAGE_API_KEY,
+            eas: {
+                projectId: 'ec84979d-cb35-482c-9eec-aa21a0afc21a',
+            },
         },
     },
 }
