@@ -4,7 +4,7 @@ import { WeekView } from '@/components/WeekView'
 import { LocationBar } from '@/components/LocationBar'
 import { WeatherService } from '@/services/weatherService'
 import { WeatherData } from '@/types/weather'
-import { useLocation } from '@/hooks/useLocation'
+import { useLocation } from '@/contexts/LocationContext'
 import * as Location from 'expo-location'
 import { LoadingSpinner } from '@/components/LoadingSpinner'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -80,10 +80,7 @@ export default function WeekScreen() {
 
     return (
         <SafeAreaView className="flex-1 bg-gray-900">
-            <LocationBar
-                locationName={locationName}
-                onLocationUpdate={updateLocation}
-            />
+            <LocationBar locationName={locationName} />
             {isLoading && isFirstLoad.current ? (
                 <LoadingSpinner />
             ) : weatherData ? (

@@ -19,6 +19,7 @@ import ParallaxScrollView from '@/components/ParallaxScrollView'
 import { ThemedText } from '@/components/ThemedText'
 import { ThemedView } from '@/components/ThemedView'
 import { IconSymbol } from '@/components/ui/IconSymbol'
+import { LocationSearch } from '@/components/LocationSearch'
 import {
     WeatherThresholds,
     DEFAULT_WEATHER_THRESHOLDS,
@@ -148,6 +149,11 @@ export default function SettingsScreen() {
     return (
         <SafeAreaView className="flex-1 bg-gray-900">
             <ScrollView className="flex-1 px-4">
+                <View className="mt-4 mb-6">
+                    <Text className="text-blue-400 text-lg mb-2">Location</Text>
+                    <LocationSearch />
+                </View>
+
                 <View className="mt-4 mb-2">
                     <Text className="text-blue-400 text-lg mb-1">
                         Temperature

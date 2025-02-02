@@ -15,7 +15,7 @@ import { LocationBar } from '@/components/LocationBar'
 import { WeatherGrid } from '@/components/WeatherGrid'
 import React from 'react'
 import { HourSelector } from '@/components/HourSelector'
-import { useLocation } from '@/hooks/useLocation'
+import { useLocation } from '@/contexts/LocationContext'
 import { LinearGradient } from 'expo-linear-gradient'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
@@ -202,10 +202,7 @@ export default function Home() {
     return (
         <SafeAreaView className="flex-1 bg-gray-900">
             <Animated.View style={[{ flex: 1, opacity: fadeAnim }]}>
-                <LocationBar
-                    locationName={locationName}
-                    onLocationUpdate={updateLocation}
-                />
+                <LocationBar locationName={locationName} />
 
                 <View className="flex-1 px-4 pt-4">
                     {isLoading ? (

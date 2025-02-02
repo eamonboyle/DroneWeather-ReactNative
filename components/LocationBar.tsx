@@ -2,17 +2,18 @@ import { View, Text, Pressable, Alert, ActivityIndicator } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import * as Location from 'expo-location'
 import { useState } from 'react'
+import { useLocation } from '@/contexts/LocationContext'
+import { useWeatherData } from '@/contexts/WeatherDataContext'
+import { WeatherService } from '@/services/weatherService'
 
 interface LocationBarProps {
     locationName: string
-    onLocationUpdate: () => Promise<void>
 }
 
-export function LocationBar({
-    locationName,
-    onLocationUpdate,
-}: LocationBarProps) {
+export function LocationBar({ locationName }: LocationBarProps) {
     const [isLoading, setIsLoading] = useState(false)
+    const { updateLocation } = useLocation()
+    const { setWeatherData } = useWeatherData()
 
     const handleSearchPress = () => {
         Alert.alert('Search', 'Search for a location')
@@ -23,7 +24,26 @@ export function LocationBar({
 
         setIsLoading(true)
         try {
-            await onLocationUpdate()
+            // Get current device location
+            const { status } =
+                await Location.requestForegroundPermissionsAsync()
+
+            if (status !== 'granted') {
+                Alert.alert('Error', 'Permission to access location was denied')
+                return
+            }
+
+            const deviceLocation = await Location.getCurrentPositionAsync({})
+
+            // Update location in context
+            await updateLocation(deviceLocation)
+
+            // Fetch new weather data for device location
+            const weather = await WeatherService.getCurrentWeather(
+                deviceLocation.coords.latitude,
+                deviceLocation.coords.longitude
+            )
+            setWeatherData(weather)
         } catch (error) {
             console.error('Error getting location:', error)
             Alert.alert('Error', 'Failed to get current location')

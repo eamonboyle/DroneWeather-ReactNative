@@ -12,7 +12,7 @@ import { format } from 'date-fns'
 import { useWeatherConfig } from '@/contexts/WeatherConfigContext'
 import { useWeatherData } from '@/contexts/WeatherDataContext'
 import { LocationBar } from '@/components/LocationBar'
-import { useLocation } from '@/hooks/useLocation'
+import { useLocation } from '@/contexts/LocationContext'
 
 interface TableCellProps {
     value?: string | number
@@ -62,7 +62,7 @@ function TableHeader({
 
 export default function ForecastTable() {
     const router = useRouter()
-    const { location, locationName, updateLocation } = useLocation()
+    const { location, locationName } = useLocation()
     const { thresholds } = useWeatherConfig()
     const { weatherData } = useWeatherData()
     const { width: screenWidth } = useWindowDimensions()
@@ -140,10 +140,7 @@ export default function ForecastTable() {
                 </Text>
             </View>
 
-            <LocationBar
-                locationName={locationName}
-                onLocationUpdate={updateLocation}
-            />
+            <LocationBar locationName={locationName} />
 
             {/* Headers - Now outside ScrollView to stay fixed */}
             <View className="z-10">
