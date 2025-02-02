@@ -74,17 +74,6 @@ function RootLayoutNav() {
                                 name="(tabs)"
                                 options={{ headerShown: false }}
                             />
-                            <Stack.Screen
-                                name="modal"
-                                options={{ presentation: 'modal' }}
-                            />
-                            <Stack.Screen
-                                name="forecast-table"
-                                options={{
-                                    headerShown: false,
-                                    presentation: 'modal',
-                                }}
-                            />
                         </Stack>
                         <StatusBar style="auto" />
                     </WeatherDataProvider>
