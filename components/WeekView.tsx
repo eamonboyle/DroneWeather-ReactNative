@@ -159,9 +159,14 @@ function HourCard({ hourData, onPress }: HourCardProps) {
             ? `${windSpeed.toFixed(0)}/${windGust.toFixed(0)} mph`
             : `${windSpeed.toFixed(0)}/${windGust.toFixed(0)} km/h`
 
-    const gradientColors = conditions.isSuitable
-        ? (['#065f46', '#047857'] as const)
-        : (['#991b1b', '#b91c1c'] as const)
+    // Check cloud cover separately (as warning only)
+    const hasHighCloudCover =
+        hourData.cloudCover > thresholds.weather.maxCloudCover
+
+    // Determine gradient colors based only on conditions (ignoring cloud cover)
+    const gradientColors: readonly [string, string] = conditions.isSuitable
+        ? ['#065f46', '#047857'] // Green for safe
+        : ['#991b1b', '#b91c1c'] // Red for unsafe
 
     return (
         <Pressable onPress={onPress} className="mx-2">
@@ -175,9 +180,13 @@ function HourCard({ hourData, onPress }: HourCardProps) {
                     <Text className="text-gray-200 text-base font-medium">
                         {format(hourData.time, 'HH:mm')}
                     </Text>
-                    {!conditions.isSuitable && (
+                    {(!conditions.isSuitable || hasHighCloudCover) && (
                         <MaterialCommunityIcons
-                            name="information"
+                            name={
+                                hasHighCloudCover && conditions.isSuitable
+                                    ? 'cloud-alert'
+                                    : 'information'
+                            }
                             size={18}
                             color="white"
                             style={{ opacity: 0.7 }}

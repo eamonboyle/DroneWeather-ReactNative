@@ -5,6 +5,7 @@ import { format } from 'date-fns'
 import { HourlyWeatherData } from '@/types/weather'
 import { useWeatherConfig } from '@/contexts/WeatherConfigContext'
 import { BlurView } from 'expo-blur'
+import { DroneFlyabilityService } from '@/services/droneFlyabilityService'
 
 interface WeatherDetailsModalProps {
     isVisible: boolean
@@ -18,6 +19,7 @@ interface DetailRowProps {
     value: string
     color?: string
     isSafe?: boolean | 'warning'
+    subValues?: { label: string; value: string }[]
 }
 
 function DetailRow({
@@ -26,38 +28,64 @@ function DetailRow({
     value,
     color = '#60A5FA',
     isSafe,
+    subValues,
 }: DetailRowProps) {
     return (
-        <View className="flex-row items-center justify-between py-3 border-b border-gray-700">
-            <View className="flex-row items-center flex-1">
-                <MaterialCommunityIcons name={icon} size={24} color={color} />
-                <Text className="text-gray-300 ml-3 text-base">{label}</Text>
-            </View>
-            <View className="flex-row items-center">
-                <Text className="text-white text-base font-medium">
-                    {value}
-                </Text>
-                {isSafe !== undefined && (
+        <View className="py-3 border-b border-gray-700">
+            <View className="flex-row items-center justify-between">
+                <View className="flex-row items-center flex-1">
                     <MaterialCommunityIcons
-                        name={
-                            isSafe === 'warning'
-                                ? 'alert'
-                                : isSafe
-                                  ? 'check-circle'
-                                  : 'alert-circle'
-                        }
-                        size={20}
-                        color={
-                            isSafe === 'warning'
-                                ? '#fbbf24'
-                                : isSafe
-                                  ? '#22c55e'
-                                  : '#ef4444'
-                        }
-                        style={{ marginLeft: 8 }}
+                        name={icon}
+                        size={24}
+                        color={color}
                     />
-                )}
+                    <Text className="text-gray-300 ml-3 text-base">
+                        {label}
+                    </Text>
+                </View>
+                <View className="flex-row items-center">
+                    <Text className="text-white text-base font-medium">
+                        {value}
+                    </Text>
+                    {isSafe !== undefined && (
+                        <MaterialCommunityIcons
+                            name={
+                                isSafe === 'warning'
+                                    ? 'alert'
+                                    : isSafe
+                                      ? 'check-circle'
+                                      : 'alert-circle'
+                            }
+                            size={20}
+                            color={
+                                isSafe === 'warning'
+                                    ? '#fbbf24'
+                                    : isSafe
+                                      ? '#22c55e'
+                                      : '#ef4444'
+                            }
+                            style={{ marginLeft: 8 }}
+                        />
+                    )}
+                </View>
             </View>
+            {subValues && subValues.length > 0 && (
+                <View className="ml-9 mt-2">
+                    {subValues.map((subValue, index) => (
+                        <View
+                            key={index}
+                            className="flex-row justify-between items-center py-1"
+                        >
+                            <Text className="text-gray-400 text-sm">
+                                {subValue.label}
+                            </Text>
+                            <Text className="text-gray-300 text-sm">
+                                {subValue.value}
+                            </Text>
+                        </View>
+                    ))}
+                </View>
+            )}
         </View>
     )
 }
@@ -71,6 +99,11 @@ export function WeatherDetailsModal({
 
     if (!hourData) return null
 
+    const flyabilityData = DroneFlyabilityService.checkFlyingConditions(
+        hourData,
+        thresholds
+    )
+
     // Convert and format temperature
     const temperature =
         thresholds.temperature.unit === 'fahrenheit'
@@ -80,15 +113,21 @@ export function WeatherDetailsModal({
         hourData.temperature2m >= thresholds.temperature.min &&
         hourData.temperature2m <= thresholds.temperature.max
 
-    // Convert and format wind speeds
-    const windSpeed =
+    // Format wind speeds at different heights
+    const formatWindSpeed = (speed: number) =>
         thresholds.windSpeed.unit === 'mph'
-            ? (hourData.windSpeed10m * 0.621371).toFixed(1) + ' mph'
-            : hourData.windSpeed10m.toFixed(1) + ' km/h'
-    const windGust =
-        thresholds.windSpeed.unit === 'mph'
-            ? (hourData.windGusts10m * 0.621371).toFixed(1) + ' mph'
-            : hourData.windGusts10m.toFixed(1) + ' km/h'
+            ? (speed * 0.621371).toFixed(1) + ' mph'
+            : speed.toFixed(1) + ' km/h'
+
+    const windSpeedSubValues = flyabilityData.windSpeedDetails.map(
+        (detail) => ({
+            label: `At ${detail.height}`,
+            value: formatWindSpeed(detail.speed),
+        })
+    )
+
+    const windSpeed = formatWindSpeed(hourData.windSpeed10m)
+    const windGust = formatWindSpeed(hourData.windGusts10m)
     const isWindSafe =
         hourData.windSpeed10m <= thresholds.windSpeed.max &&
         hourData.windGusts10m <= thresholds.windGust.max
@@ -147,6 +186,7 @@ export function WeatherDetailsModal({
                                 label="Wind Speed"
                                 value={windSpeed}
                                 isSafe={isWindSafe}
+                                subValues={windSpeedSubValues}
                             />
                             <DetailRow
                                 icon="weather-windy-variant"
@@ -170,12 +210,7 @@ export function WeatherDetailsModal({
                                 icon="weather-cloudy"
                                 label="Cloud Cover"
                                 value={cloudCover}
-                                isSafe={
-                                    hourData.cloudCover <=
-                                    thresholds.weather.maxCloudCover
-                                        ? true
-                                        : 'warning'
-                                }
+                                isSafe={isCloudSafe ? true : 'warning'}
                             />
                         </ScrollView>
 
