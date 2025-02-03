@@ -144,9 +144,13 @@ export function WeatherGrid({ weatherData, hourIndex }: WeatherGridProps) {
         },
         {
             label: 'Wind Gusts',
-            value: `${Number(hourData.windGusts10m).toFixed(2)} km/h`,
+            value:
+                thresholds.windSpeed.unit === 'mph'
+                    ? `${(hourData.windGusts10m * 0.621371).toFixed(1)} mph`
+                    : `${hourData.windGusts10m.toFixed(1)} km/h`,
             numericValue: hourData.windGusts10m,
             icon: 'weather-windy-variant',
+            onPress: () => handleWindPress('gusts'),
         },
         {
             label: 'Wind Direction',

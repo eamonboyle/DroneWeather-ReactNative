@@ -35,6 +35,13 @@ export function WindDataPopup({
             : speed <= thresholds.windGust.max
     }
 
+    const formatSpeed = (speed: number) => {
+        if (thresholds.windSpeed.unit === 'mph') {
+            return `${(speed * 0.621371).toFixed(1)} mph`
+        }
+        return `${speed.toFixed(1)} km/h`
+    }
+
     return (
         <Modal
             animationType="fade"
@@ -73,7 +80,7 @@ export function WindDataPopup({
                             </Text>
                             <View className="flex-row items-center">
                                 <Text className="text-white text-lg font-semibold mr-2">
-                                    {item.speed.toFixed(1)} {unit}
+                                    {formatSpeed(item.speed)}
                                 </Text>
                                 <MaterialCommunityIcons
                                     name={
