@@ -91,9 +91,9 @@ function checkWeatherConditions(
 ): ConditionCheck[] {
     const checks: ConditionCheck[] = []
 
-    if (cloudCover > thresholds.weather.maxCloudCover) {
-        checks.push({ isSafe: false, reason: 'Cloud cover is too high' })
-    }
+    // if (cloudCover > thresholds.weather.maxCloudCover) {
+    //     checks.push({ isSafe: false, reason: 'Cloud cover is too high' })
+    // }
 
     if (
         precipitationProbability >
