@@ -19,7 +19,7 @@ interface DetailRowProps {
     value: string
     color?: string
     isSafe?: boolean | 'warning'
-    subValues?: { label: string; value: string }[]
+    subValues?: { label: string; value: string; isSafe?: boolean | 'warning' }[]
 }
 
 function DetailRow({
@@ -79,9 +79,31 @@ function DetailRow({
                             <Text className="text-gray-400 text-sm">
                                 {subValue.label}
                             </Text>
-                            <Text className="text-gray-300 text-sm">
-                                {subValue.value}
-                            </Text>
+                            <View className="flex-row items-center">
+                                <Text className="text-gray-300 text-sm">
+                                    {subValue.value}
+                                </Text>
+                                {subValue.isSafe !== undefined && (
+                                    <MaterialCommunityIcons
+                                        name={
+                                            subValue.isSafe === 'warning'
+                                                ? 'alert'
+                                                : subValue.isSafe
+                                                  ? 'check-circle'
+                                                  : 'alert-circle'
+                                        }
+                                        size={16}
+                                        color={
+                                            subValue.isSafe === 'warning'
+                                                ? '#fbbf24'
+                                                : subValue.isSafe
+                                                  ? '#22c55e'
+                                                  : '#ef4444'
+                                        }
+                                        style={{ marginLeft: 8 }}
+                                    />
+                                )}
+                            </View>
                         </View>
                     ))}
                 </View>
@@ -123,6 +145,7 @@ export function WeatherDetailsModal({
         (detail) => ({
             label: `At ${detail.height}`,
             value: formatWindSpeed(detail.speed),
+            isSafe: detail.speed <= thresholds.windSpeed.max,
         })
     )
 
@@ -184,7 +207,7 @@ export function WeatherDetailsModal({
 
                         {/* Content */}
                         <ScrollView className="px-6 py-4">
-                            {flyabilityData.reasons.length > 0 && (
+                            {/* {flyabilityData.reasons.length > 0 && (
                                 <View className="mb-4 p-3 bg-red-900/30 rounded-lg">
                                     <Text className="text-red-400 font-semibold mb-1">
                                         Unsafe Conditions:
@@ -200,7 +223,7 @@ export function WeatherDetailsModal({
                                         )
                                     )}
                                 </View>
-                            )}
+                            )} */}
                             <DetailRow
                                 icon="thermometer"
                                 label="Temperature"
