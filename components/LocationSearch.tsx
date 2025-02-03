@@ -29,14 +29,18 @@ export function LocationSearch({ onLocationSelected }: LocationSearchProps) {
     const { setWeatherData } = useWeatherData()
 
     const handleSearch = async () => {
-        if (!searchQuery.trim()) return
+        // If search is empty, just show warning and return
+        if (!searchQuery.trim()) {
+            setError('Please enter a location to search')
+            setResults([])
+            return
+        }
 
         setIsLoading(true)
         setError(null)
 
         try {
-            const searchResults =
-                await LocationSearchService.searchLocations(searchQuery)
+            const searchResults = await LocationSearchService.searchLocations(searchQuery.trim())
             setResults(searchResults)
         } catch (err) {
             setError('Failed to search locations. Please try again.')
