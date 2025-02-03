@@ -101,6 +101,10 @@ export function WeatherGrid({ weatherData, hourIndex }: WeatherGridProps) {
                 return value >= thresholds.visibility.min * 1000
                     ? 'safe'
                     : 'unsafe'
+            case 'Rain Chance':
+                return value <= thresholds.weather.maxPrecipitationProbability
+                    ? 'safe'
+                    : 'unsafe'
             case 'Precipitation Probability':
                 return value <= thresholds.weather.maxPrecipitationProbability
                     ? 'safe'

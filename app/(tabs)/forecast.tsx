@@ -12,13 +12,18 @@ import { useEffect, useState } from 'react'
 
 interface TableCellProps {
     value?: string | number
-    isSafe?: boolean
+    isSafe?: boolean | 'warning'
     icon?: keyof typeof MaterialCommunityIcons.glyphMap
     width?: number
 }
 
 function TableCell({ value, isSafe = true, icon, width = 60 }: TableCellProps) {
-    const bgColor = isSafe ? 'bg-green-800' : 'bg-red-800'
+    const bgColor =
+        isSafe === 'warning'
+            ? 'bg-yellow-700'
+            : isSafe
+              ? 'bg-green-800'
+              : 'bg-red-800'
 
     return (
         <View
@@ -240,8 +245,10 @@ export default function ForecastTable() {
                                 <TableCell
                                     value={`${hour.cloudCover}%`}
                                     isSafe={
-                                        hour.cloudCover <=
+                                        hour.cloudCover >=
                                         thresholds.weather.maxCloudCover
+                                            ? 'warning'
+                                            : true
                                     }
                                     width={cellWidth}
                                 />
