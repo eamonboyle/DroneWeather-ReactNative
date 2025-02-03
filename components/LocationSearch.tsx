@@ -62,10 +62,11 @@ export function LocationSearch({ onLocationSelected }: LocationSearchProps) {
                 timestamp: Date.now(),
             }
 
-            // Update the location context with the selected location
-            await updateLocation(mockLocation)
+            // Close the modal immediately
+            onLocationSelected?.()
 
-            // Fetch new weather data for the selected location
+            // Then update the location and fetch weather data
+            await updateLocation(mockLocation)
             const weather = await WeatherService.getCurrentWeather(
                 result.latitude,
                 result.longitude
@@ -75,9 +76,6 @@ export function LocationSearch({ onLocationSelected }: LocationSearchProps) {
             // Clear the search results
             setResults([])
             setSearchQuery('')
-
-            // Call the onLocationSelected callback if provided
-            onLocationSelected?.()
         } catch (err) {
             setError('Failed to update location. Please try again.')
             console.error(err)
@@ -88,8 +86,9 @@ export function LocationSearch({ onLocationSelected }: LocationSearchProps) {
         <View className="w-full">
             <View className="flex-row items-center space-x-2 p-4">
                 <TextInput
-                    className="flex-1 h-10 px-3 bg-gray-100 dark:bg-gray-800 rounded-lg"
+                    className="flex-1 h-10 px-3 text-white bg-gray-800 rounded-lg"
                     placeholder="Search location..."
+                    placeholderTextColor="#9CA3AF"
                     value={searchQuery}
                     onChangeText={setSearchQuery}
                     onSubmitEditing={handleSearch}
@@ -104,7 +103,7 @@ export function LocationSearch({ onLocationSelected }: LocationSearchProps) {
 
             {isLoading && (
                 <View className="p-4">
-                    <ActivityIndicator size="small" color="#0000ff" />
+                    <ActivityIndicator size="small" color="#60A5FA" />
                 </View>
             )}
 
@@ -115,13 +114,13 @@ export function LocationSearch({ onLocationSelected }: LocationSearchProps) {
                     <TouchableOpacity
                         key={index}
                         onPress={() => handleLocationSelect(result)}
-                        className="p-4 border-b border-gray-200 dark:border-gray-700"
+                        className="p-4 border-b border-gray-700"
                     >
-                        <Text className="text-base dark:text-white">
+                        <Text className="text-white text-base">
                             {result.formatted}
                         </Text>
                         {(result.city || result.country) && (
-                            <Text className="text-sm text-gray-500 dark:text-gray-400">
+                            <Text className="text-gray-400 text-sm">
                                 {[result.city, result.country]
                                     .filter(Boolean)
                                     .join(', ')}
