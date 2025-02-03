@@ -6,6 +6,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { useWeatherConfig } from '@/contexts/WeatherConfigContext'
 import { LinearGradient } from 'expo-linear-gradient'
 import { WeatherDetailsModal } from './WeatherDetailsModal'
+import { DroneFlyabilityService } from '@/services/droneFlyabilityService'
 
 interface WeekViewProps {
     weatherData: WeatherData
@@ -130,7 +131,19 @@ interface HourCardProps {
 function HourCard({ hourData, onPress }: HourCardProps) {
     const { thresholds } = useWeatherConfig()
 
-    // Convert wind speed and gusts to the correct unit if needed
+    // Check flyability conditions
+    const conditions = DroneFlyabilityService.checkFlyingConditions(
+        hourData,
+        thresholds
+    )
+
+    // Format temperature based on unit preference
+    const temperature =
+        thresholds.temperature.unit === 'fahrenheit'
+            ? ((hourData.temperature2m * 9) / 5 + 32).toFixed(0) + '°F'
+            : hourData.temperature2m.toFixed(0) + '°C'
+
+    // Format wind speed and gust based on unit preference
     const windSpeed =
         thresholds.windSpeed.unit === 'mph'
             ? hourData.windSpeed10m * 0.621371
@@ -141,24 +154,12 @@ function HourCard({ hourData, onPress }: HourCardProps) {
             ? hourData.windGusts10m * 0.621371
             : hourData.windGusts10m
 
-    const isWindSafe =
-        thresholds &&
-        windSpeed <= thresholds.windSpeed.max &&
-        windGust <= thresholds.windGust.max
-
-    // Format temperature based on unit preference
-    const temperature =
-        thresholds.temperature.unit === 'fahrenheit'
-            ? ((hourData.temperature2m * 9) / 5 + 32).toFixed(0) + '°F'
-            : hourData.temperature2m.toFixed(0) + '°C'
-
-    // Format wind speed and gust based on unit preference
     const windSpeedDisplay =
         thresholds.windSpeed.unit === 'mph'
             ? `${windSpeed.toFixed(0)}/${windGust.toFixed(0)} mph`
             : `${windSpeed.toFixed(0)}/${windGust.toFixed(0)} km/h`
 
-    const gradientColors = isWindSafe
+    const gradientColors = conditions.isSuitable
         ? (['#065f46', '#047857'] as const)
         : (['#991b1b', '#b91c1c'] as const)
 

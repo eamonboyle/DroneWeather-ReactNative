@@ -17,7 +17,7 @@ interface DetailRowProps {
     label: string
     value: string
     color?: string
-    isSafe?: boolean
+    isSafe?: boolean | 'warning'
 }
 
 function DetailRow({
@@ -39,9 +39,21 @@ function DetailRow({
                 </Text>
                 {isSafe !== undefined && (
                     <MaterialCommunityIcons
-                        name={isSafe ? 'check-circle' : 'alert-circle'}
+                        name={
+                            isSafe === 'warning'
+                                ? 'alert'
+                                : isSafe
+                                  ? 'check-circle'
+                                  : 'alert-circle'
+                        }
                         size={20}
-                        color={isSafe ? '#22c55e' : '#ef4444'}
+                        color={
+                            isSafe === 'warning'
+                                ? '#fbbf24'
+                                : isSafe
+                                  ? '#22c55e'
+                                  : '#ef4444'
+                        }
                         style={{ marginLeft: 8 }}
                     />
                 )}
@@ -158,7 +170,12 @@ export function WeatherDetailsModal({
                                 icon="weather-cloudy"
                                 label="Cloud Cover"
                                 value={cloudCover}
-                                isSafe={isCloudSafe}
+                                isSafe={
+                                    hourData.cloudCover <=
+                                    thresholds.weather.maxCloudCover
+                                        ? true
+                                        : 'warning'
+                                }
                             />
                         </ScrollView>
 
