@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { View, ScrollView, Text, Pressable } from 'react-native'
-import { format } from 'date-fns'
+import { format, isBefore, startOfHour } from 'date-fns'
 import { WeatherData, HourlyWeatherData } from '@/types/weather'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { useWeatherConfig } from '@/contexts/WeatherConfigContext'
@@ -23,20 +23,51 @@ export function WeekView({ weatherData, onHourSelect }: WeekViewProps) {
     )
     const [isModalVisible, setIsModalVisible] = useState(false)
 
-    // Group hourly data by day, starting from tomorrow (index 25)
+    // Group hourly data by day, showing remaining hours for today and full days for future
     const groupedData = React.useMemo(() => {
         const days: DayData[] = []
-        const startIndex = 24 // Start from hour 24 (tomorrow)
+        const currentHour = startOfHour(new Date())
+        const currentDate = format(currentHour, 'yyyy-MM-dd')
 
-        for (let i = startIndex; i < weatherData.hourlyData.length; i += 24) {
-            const dayHours = weatherData.hourlyData.slice(i, i + 24)
-            if (dayHours.length > 0) {
-                days.push({
-                    date: dayHours[0].time,
-                    hours: dayHours,
-                })
+        // Process all hours
+        let currentDayHours: HourlyWeatherData[] = []
+        let futureDays: DayData[] = []
+
+        weatherData.hourlyData.forEach((hour) => {
+            const hourDate = format(hour.time, 'yyyy-MM-dd')
+
+            if (hourDate === currentDate) {
+                // For current day, only include hours from now onwards
+                if (!isBefore(hour.time, currentHour)) {
+                    currentDayHours.push(hour)
+                }
+            } else if (hourDate > currentDate) {
+                // For future days, group all hours by day
+                const lastDay = futureDays[futureDays.length - 1]
+                if (
+                    lastDay &&
+                    format(lastDay.date, 'yyyy-MM-dd') === hourDate
+                ) {
+                    lastDay.hours.push(hour)
+                } else {
+                    futureDays.push({
+                        date: hour.time,
+                        hours: [hour],
+                    })
+                }
             }
+        })
+
+        // Add current day if it has remaining hours
+        if (currentDayHours.length > 0) {
+            days.push({
+                date: currentDayHours[0].time,
+                hours: currentDayHours,
+            })
         }
+
+        // Add all future days
+        days.push(...futureDays)
 
         return days
     }, [weatherData])
