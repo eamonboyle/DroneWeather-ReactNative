@@ -1,7 +1,44 @@
 import React, { useRef, useEffect, useMemo } from 'react'
 import { View, Text, ScrollView, Pressable, Dimensions } from 'react-native'
-import { LinearGradient } from 'expo-linear-gradient'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
+import { DroneFlyabilityService } from '@/services/droneFlyabilityService'
+import { useWeatherConfig } from '@/contexts/WeatherConfigContext'
+import { useWeatherData } from '@/contexts/WeatherDataContext'
+import { HourlyWeatherData } from '@/types/weather'
+
+interface SafetyBarProps {
+    weatherData: HourlyWeatherData[]
+}
+
+function SafetyBar({ weatherData }: SafetyBarProps) {
+    const { thresholds } = useWeatherConfig()
+
+    const safetyData = weatherData.map((hourData) => {
+        const conditions = DroneFlyabilityService.checkFlyingConditions(
+            hourData,
+            thresholds
+        )
+
+        return {
+            hour: new Date(hourData.time).getHours(),
+            timestamp: hourData.time,
+            isSafe: conditions.isSuitable,
+        }
+    })
+
+    return (
+        <View className="h-1.5 flex-1 flex-row rounded-full overflow-hidden">
+            {safetyData.map(({ hour, timestamp, isSafe }) => (
+                <View
+                    key={timestamp.toString()}
+                    className={`flex-1 ${
+                        isSafe ? 'bg-green-500' : 'bg-red-500'
+                    }`}
+                />
+            ))}
+        </View>
+    )
+}
 
 interface HourSelectorProps {
     selectedHour: number
@@ -18,16 +55,51 @@ export function HourSelector({
     const windowWidth = Dimensions.get('window').width
     const itemWidth = 60 // Width of each hour item
     const scrollViewRef = useRef<ScrollView>(null)
+    const { thresholds } = useWeatherConfig()
+    const { weatherData } = useWeatherData()
 
     const getCurrentHour = () => new Date().getHours()
     const currentHour = useMemo(() => getCurrentHour(), []) // Memoize current hour
 
+    // Calculate safety data for all hours
+    const hourlyFlyability = useMemo(() => {
+        if (!weatherData) return []
+
+        return weatherData.hourlyData.map((hourData) => {
+            const conditions = DroneFlyabilityService.checkFlyingConditions(
+                hourData,
+                thresholds
+            )
+
+            return {
+                hour: new Date(hourData.time).getHours(),
+                timestamp: hourData.time,
+                isSafe: conditions.isSuitable,
+            }
+        })
+    }, [weatherData, thresholds])
+
     // Set initial hour when component mounts
     useEffect(() => {
-        if (selectedHour === 0) {
-            onHourChange(currentHour)
+        if (selectedHour === 0 && weatherData) {
+            // Find the first available hour in today's data
+            const today = new Date()
+            today.setHours(0, 0, 0, 0)
+
+            const availableHour = weatherData.hourlyData.find(
+                (data) =>
+                    new Date(data.time).toDateString() ===
+                        today.toDateString() &&
+                    new Date(data.time).getHours() >= currentHour
+            )
+
+            if (availableHour) {
+                onHourChange(new Date(availableHour.time).getHours())
+            } else {
+                onHourChange(currentHour)
+            }
         }
-    }, [])
+    }, [selectedHour, weatherData, currentHour, onHourChange])
 
     // Handle scrolling whenever selectedHour changes
     useEffect(() => {
@@ -44,33 +116,39 @@ export function HourSelector({
     }
 
     const getHourStyle = (hour: number) => {
+        const hourData = hourlyFlyability.find((h) => h.hour === hour)
         if (selectedHour === hour) {
             return {
                 container: 'bg-blue-500',
                 text: 'text-white',
             }
         }
-        if (hour === currentHour) {
+        // Add a subtle indication of safety status in unselected hours
+        if (hourData?.isSafe) {
             return {
-                container: 'bg-blue-500/20 border-2 border-blue-500',
-                text: 'text-blue-400',
+                container: 'bg-transparent',
+                text: 'text-green-400',
             }
         }
         return {
             container: 'bg-transparent',
-            text: 'text-gray-400',
+            text: 'text-red-400',
         }
     }
+
+    if (!weatherData) return null
+
+    // Get the date for today to match with weather data
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
 
     return (
         <View className={`px-4 ${className}`}>
             <View className="flex-row items-center justify-between mb-2">
-                <LinearGradient
-                    colors={['#FFD700', '#32CD32', '#FF4500']}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}
-                    className="h-1 flex-1 rounded-full"
-                />
+                <Text className="text-gray-400 text-sm">
+                    Select an hour to view detailed weather conditions
+                </Text>
+                {/* <SafetyBar weatherData={weatherData.hourlyData} /> */}
                 <Pressable
                     onPress={handleCurrentHourPress}
                     className="ml-4 flex-row items-center bg-blue-500 px-3 py-1.5 rounded-full"
@@ -96,9 +174,20 @@ export function HourSelector({
                 >
                     {hours.map((hour) => {
                         const style = getHourStyle(hour)
+                        // Find the matching weather data for this hour
+                        const hourWeatherData = weatherData.hourlyData.find(
+                            (data) =>
+                                new Date(data.time).getHours() === hour &&
+                                new Date(data.time).toDateString() ===
+                                    today.toDateString()
+                        )
+                        const uniqueKey = hourWeatherData
+                            ? hourWeatherData.time.toString()
+                            : `hour-${hour}`
+
                         return (
                             <Pressable
-                                key={hour}
+                                key={uniqueKey}
                                 onPress={() => onHourChange(hour)}
                                 className={`w-[60px] items-center py-2`}
                             >
