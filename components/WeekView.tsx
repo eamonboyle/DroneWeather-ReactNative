@@ -171,11 +171,21 @@ function HourCard({ hourData, onPress }: HourCardProps) {
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
             >
-                <Text className="text-gray-200 text-base font-medium mb-2">
-                    {format(hourData.time, 'HH:mm')}
-                </Text>
+                <View className="flex-row justify-between items-start">
+                    <Text className="text-gray-200 text-base font-medium">
+                        {format(hourData.time, 'HH:mm')}
+                    </Text>
+                    {!conditions.isSuitable && (
+                        <MaterialCommunityIcons
+                            name="information"
+                            size={18}
+                            color="white"
+                            style={{ opacity: 0.7 }}
+                        />
+                    )}
+                </View>
 
-                <Text className="text-white text-3xl font-bold mb-3">
+                <Text className="text-white text-3xl font-bold mb-3 mt-2">
                     {temperature}
                 </Text>
 
