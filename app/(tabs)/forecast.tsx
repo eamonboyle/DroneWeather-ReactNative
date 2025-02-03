@@ -2,13 +2,15 @@ import { View, Text, ScrollView, useWindowDimensions } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
-import { format } from 'date-fns'
+import { format, isBefore, startOfHour } from 'date-fns'
 import { useWeatherConfig } from '@/contexts/WeatherConfigContext'
 import { useWeatherData } from '@/contexts/WeatherDataContext'
 import { LocationBar } from '@/components/LocationBar'
 import { useLocation } from '@/contexts/LocationContext'
 import { LoadingSpinner } from '@/components/LoadingSpinner'
 import { useEffect, useState } from 'react'
+import { DroneFlyabilityService } from '@/services/droneFlyabilityService'
+import { HourlyWeatherData } from '@/types/weather'
 
 interface TableCellProps {
     value?: string | number
@@ -139,9 +141,14 @@ export default function ForecastTable() {
     const timeWidth = 80
     const cellWidth = (screenWidth - timeWidth) / 5 // 5 parameters excluding time (temp, wind, gusts, cloud, rain)
 
-    // Group hours by date
+    // Group hours by date, filtering out past hours
     const groupedByDay = weatherData.hourlyData.reduce(
         (acc, hour) => {
+            // Skip hours before current time
+            if (isBefore(hour.time, startOfHour(new Date()))) {
+                return acc
+            }
+
             const date = format(hour.time, 'yyyy-MM-dd')
             if (!acc[date]) {
                 acc[date] = []
@@ -151,6 +158,25 @@ export default function ForecastTable() {
         },
         {} as Record<string, typeof weatherData.hourlyData>
     )
+
+    // Filter out any empty days (where all hours were in the past)
+    const filteredGroupedByDay = Object.entries(groupedByDay).reduce(
+        (acc, [date, hours]) => {
+            if (hours.length > 0) {
+                acc[date] = hours
+            }
+            return acc
+        },
+        {} as Record<string, typeof weatherData.hourlyData>
+    )
+
+    const checkConditions = (hour: HourlyWeatherData) => {
+        const conditions = DroneFlyabilityService.checkFlyingConditions(
+            hour,
+            thresholds
+        )
+        return conditions
+    }
 
     return (
         <SafeAreaView className="flex-1 bg-gray-900">
@@ -193,12 +219,12 @@ export default function ForecastTable() {
             </View>
 
             <ScrollView
-                stickyHeaderIndices={Object.keys(groupedByDay).map(
+                stickyHeaderIndices={Object.keys(filteredGroupedByDay).map(
                     (_, index) => index
                 )}
             >
                 {/* Data Rows Grouped by Day */}
-                {Object.entries(groupedByDay).map(([date, hours]) => (
+                {Object.entries(filteredGroupedByDay).map(([date, hours]) => (
                     <View key={date}>
                         {/* Day Header - Will be sticky */}
                         <View
@@ -211,58 +237,69 @@ export default function ForecastTable() {
                         </View>
 
                         {/* Hours for this day */}
-                        {hours.map((hour, index) => (
-                            <View key={index} className="flex-row">
-                                <TableCell
-                                    value={format(hour.time, 'HH:mm')}
-                                    width={timeWidth}
-                                />
-                                <TableCell
-                                    value={formatTemperature(
-                                        hour.temperature2m
-                                    )}
-                                    isSafe={isTemperatureSafe(
-                                        hour.temperature2m
-                                    )}
-                                    width={cellWidth}
-                                />
-                                <TableCell
-                                    value={formatWindSpeed(hour.windSpeed10m)}
-                                    isSafe={isWindSafe(
-                                        hour.windSpeed10m,
-                                        hour.windGusts10m
-                                    )}
-                                    width={cellWidth}
-                                />
-                                <TableCell
-                                    value={formatWindSpeed(hour.windGusts10m)}
-                                    isSafe={isWindSafe(
-                                        hour.windSpeed10m,
-                                        hour.windGusts10m
-                                    )}
-                                    width={cellWidth}
-                                />
-                                <TableCell
-                                    value={`${hour.cloudCover}%`}
-                                    isSafe={
-                                        hour.cloudCover >=
-                                        thresholds.weather.maxCloudCover
-                                            ? 'warning'
-                                            : true
-                                    }
-                                    width={cellWidth}
-                                />
-                                <TableCell
-                                    value={`${hour.precipitationProbability}%`}
-                                    isSafe={
-                                        hour.precipitationProbability <=
-                                        thresholds.weather
-                                            .maxPrecipitationProbability
-                                    }
-                                    width={cellWidth}
-                                />
-                            </View>
-                        ))}
+                        {hours.map((hour, index) => {
+                            const conditions = checkConditions(hour)
+                            return (
+                                <View key={index} className="flex-row">
+                                    <TableCell
+                                        value={format(hour.time, 'HH:mm')}
+                                        width={timeWidth}
+                                    />
+                                    <TableCell
+                                        value={formatTemperature(
+                                            hour.temperature2m
+                                        )}
+                                        isSafe={
+                                            !conditions.reasons.some((r) =>
+                                                r.includes('Temperature')
+                                            )
+                                        }
+                                        width={cellWidth}
+                                    />
+                                    <TableCell
+                                        value={formatWindSpeed(
+                                            hour.windSpeed10m
+                                        )}
+                                        isSafe={
+                                            !conditions.reasons.some((r) =>
+                                                r.includes('Wind speed')
+                                            )
+                                        }
+                                        width={cellWidth}
+                                    />
+                                    <TableCell
+                                        value={formatWindSpeed(
+                                            hour.windGusts10m
+                                        )}
+                                        isSafe={
+                                            !conditions.reasons.some((r) =>
+                                                r.includes('Wind speed')
+                                            )
+                                        }
+                                        width={cellWidth}
+                                    />
+                                    <TableCell
+                                        value={`${hour.cloudCover}%`}
+                                        isSafe={
+                                            hour.cloudCover >=
+                                            thresholds.weather.maxCloudCover
+                                                ? 'warning'
+                                                : true
+                                        }
+                                        width={cellWidth}
+                                    />
+                                    <TableCell
+                                        value={`${hour.precipitationProbability}%`}
+                                        isSafe={
+                                            !conditions.reasons.some((r) =>
+                                                r.includes('precipitation')
+                                            )
+                                        }
+                                        width={cellWidth}
+                                    />
+                                </View>
+                            )
+                        })}
                     </View>
                 ))}
             </ScrollView>
