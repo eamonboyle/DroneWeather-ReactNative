@@ -113,30 +113,6 @@ export default function ForecastTable() {
             : temp.toFixed(0)
     }
 
-    const formatVisibility = (vis: number) => {
-        return thresholds.visibility.unit === 'miles'
-            ? (vis / 1.60934).toFixed(1)
-            : vis.toFixed(1)
-    }
-
-    const isWindSafe = (speed: number, gust: number) => {
-        const convertedSpeed =
-            thresholds.windSpeed.unit === 'mph' ? speed * 0.621371 : speed
-        const convertedGust =
-            thresholds.windSpeed.unit === 'mph' ? gust * 0.621371 : gust
-        return (
-            convertedSpeed <= thresholds.windSpeed.max &&
-            convertedGust <= thresholds.windGust.max
-        )
-    }
-
-    const isTemperatureSafe = (temp: number) => {
-        return (
-            temp >= thresholds.temperature.min &&
-            temp <= thresholds.temperature.max
-        )
-    }
-
     // Calculate cell widths based on screen width
     const timeWidth = 80
     const cellWidth = (screenWidth - timeWidth) / 5 // 5 parameters excluding time (temp, wind, gusts, cloud, rain)
@@ -183,8 +159,8 @@ export default function ForecastTable() {
             <LocationBar locationName={locationName} />
 
             {/* Headers - Now outside ScrollView to stay fixed */}
-            <View className="z-10">
-                <View className="flex-row bg-gray-900">
+            <View className="z-10 bg-gray-900">
+                <View className="flex-row">
                     <TableHeader
                         label="Time"
                         icon="clock-outline"
@@ -218,17 +194,13 @@ export default function ForecastTable() {
                 </View>
             </View>
 
-            <ScrollView
-                stickyHeaderIndices={Object.keys(filteredGroupedByDay).map(
-                    (_, index) => index
-                )}
-            >
+            <ScrollView>
                 {/* Data Rows Grouped by Day */}
                 {Object.entries(filteredGroupedByDay).map(([date, hours]) => (
                     <View key={date}>
                         {/* Day Header - Will be sticky */}
                         <View
-                            className="flex-row bg-gray-800/95 border-t border-b border-gray-700 py-2 px-4"
+                            className="flex-row bg-gray-800/95 border-t border-b border-gray-700 py-2 px-4 sticky top-0"
                             style={{ width: screenWidth }}
                         >
                             <Text className="text-white font-semibold">
