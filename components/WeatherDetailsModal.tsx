@@ -133,11 +133,20 @@ export function WeatherDetailsModal({
         hourData.windGusts10m <= thresholds.windGust.max
 
     // Convert and format visibility
+    const visibilityInKm = hourData.visibility
+    const minVisibilityKm =
+        thresholds.visibility.unit === 'miles'
+            ? thresholds.visibility.min * 1.60934 // Convert miles to km
+            : thresholds.visibility.min
     const visibility =
         thresholds.visibility.unit === 'miles'
-            ? (hourData.visibility / 1.60934).toFixed(1) + ' mi'
-            : hourData.visibility.toFixed(1) + ' km'
-    const isVisibilitySafe = hourData.visibility >= thresholds.visibility.min
+            ? (visibilityInKm / 1.60934).toFixed(1) + ' mi'
+            : visibilityInKm.toFixed(1) + ' km'
+    const visibilityThreshold =
+        thresholds.visibility.unit === 'miles'
+            ? `${thresholds.visibility.min} mi`
+            : `${thresholds.visibility.min} km`
+    const isVisibilitySafe = visibilityInKm >= minVisibilityKm
 
     // Format precipitation and cloud cover
     const precipitation = `${hourData.precipitationProbability.toFixed(0)}%`
@@ -175,6 +184,23 @@ export function WeatherDetailsModal({
 
                         {/* Content */}
                         <ScrollView className="px-6 py-4">
+                            {flyabilityData.reasons.length > 0 && (
+                                <View className="mb-4 p-3 bg-red-900/30 rounded-lg">
+                                    <Text className="text-red-400 font-semibold mb-1">
+                                        Unsafe Conditions:
+                                    </Text>
+                                    {flyabilityData.reasons.map(
+                                        (reason, index) => (
+                                            <Text
+                                                key={index}
+                                                className="text-red-300"
+                                            >
+                                                • {reason}
+                                            </Text>
+                                        )
+                                    )}
+                                </View>
+                            )}
                             <DetailRow
                                 icon="thermometer"
                                 label="Temperature"

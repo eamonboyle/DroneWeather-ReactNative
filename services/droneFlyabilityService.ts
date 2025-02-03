@@ -65,19 +65,16 @@ function checkWindSpeed(
 }
 
 function checkVisibility(
-    visibility: number,
+    visibility: number, // visibility in kilometers
     thresholds: WeatherThresholds
 ): ConditionCheck {
-    const minVisibility =
+    // Convert threshold to kilometers for comparison
+    const minVisibilityKm =
         thresholds.visibility.unit === 'miles'
-            ? convertDistance(
-                  thresholds.visibility.min,
-                  'miles',
-                  'kilometers'
-              ) * 1000
-            : thresholds.visibility.min * 1000
+            ? convertDistance(thresholds.visibility.min, 'miles', 'kilometers')
+            : thresholds.visibility.min
 
-    const isSafe = visibility >= minVisibility
+    const isSafe = visibility >= minVisibilityKm
     return {
         isSafe,
         reason: isSafe ? undefined : 'Visibility is too low',
