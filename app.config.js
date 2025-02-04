@@ -16,10 +16,6 @@ module.exports = {
         assetBundlePatterns: ['**/*'],
         ios: {
             supportsTablet: true,
-            bundleIdentifier: 'com.eamonsdiary.droneweather',
-            config: {
-                googleMapsApiKey: process.env.GOOGLE_MAPS_API_KEY,
-            },
         },
         android: {
             package: 'com.eamonsdiary.droneweather',
@@ -27,12 +23,6 @@ module.exports = {
                 foregroundImage: './assets/images/adaptive-icon.png',
                 backgroundColor: '#ffffff',
             },
-            config: {
-                googleMaps: {
-                    apiKey: process.env.GOOGLE_MAPS_API_KEY,
-                },
-            },
-            permissions: ['ACCESS_COARSE_LOCATION', 'ACCESS_FINE_LOCATION'],
         },
         web: {
             bundler: 'metro',
@@ -48,13 +38,6 @@ module.exports = {
                     imageWidth: 200,
                     resizeMode: 'contain',
                     backgroundColor: '#ffffff',
-                },
-            ],
-            [
-                'expo-location',
-                {
-                    locationAlwaysAndWhenInUsePermission:
-                        'Allow $(PRODUCT_NAME) to use your location.',
                 },
             ],
         ],
