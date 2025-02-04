@@ -1,7 +1,7 @@
 import { Tabs } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
-import { Ionicons } from '@expo/vector-icons'
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
 import '@/styles/globals.css'
 
 export default function TabLayout() {
@@ -27,6 +27,20 @@ export default function TabLayout() {
                         title: 'Home',
                         tabBarIcon: ({ color, size }) => (
                             <Ionicons name="home" size={size} color={color} />
+                        ),
+                        headerShown: false,
+                    }}
+                />
+                <Tabs.Screen
+                    name="map"
+                    options={{
+                        title: 'Map',
+                        tabBarIcon: ({ color, size }) => (
+                            <MaterialCommunityIcons
+                                name="map"
+                                size={size}
+                                color={color}
+                            />
                         ),
                         headerShown: false,
                     }}
