@@ -1,5 +1,6 @@
 import { Tabs } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
+import { Platform } from 'react-native'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
 import '@/styles/globals.css'
@@ -15,10 +16,12 @@ export default function TabLayout() {
                     },
                     headerTintColor: '#fff',
                     tabBarStyle: {
-                        backgroundColor: '#000',
+                        backgroundColor: '#1f2937',
+                        borderTopWidth: 0,
                     },
-                    tabBarActiveTintColor: '#fff',
-                    tabBarInactiveTintColor: '#666',
+                    tabBarActiveTintColor: '#60A5FA',
+                    tabBarInactiveTintColor: '#9CA3AF',
+                    tabBarHideOnKeyboard: Platform.OS === 'android',
                 }}
             >
                 <Tabs.Screen
@@ -64,7 +67,11 @@ export default function TabLayout() {
                     options={{
                         title: 'Forecast',
                         tabBarIcon: ({ color, size }) => (
-                            <Ionicons name="cloud" size={size} color={color} />
+                            <MaterialCommunityIcons
+                                name="calendar-month"
+                                size={size}
+                                color={color}
+                            />
                         ),
                         headerShown: false,
                     }}
@@ -74,8 +81,8 @@ export default function TabLayout() {
                     options={{
                         title: 'Settings',
                         tabBarIcon: ({ color, size }) => (
-                            <Ionicons
-                                name="settings"
+                            <MaterialCommunityIcons
+                                name="cog"
                                 size={size}
                                 color={color}
                             />

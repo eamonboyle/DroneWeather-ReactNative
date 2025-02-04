@@ -1,11 +1,10 @@
-import React, { useEffect, useRef } from 'react'
+import React from 'react'
 import {
     View,
     Modal,
     Pressable,
     Text,
     TouchableWithoutFeedback,
-    Animated,
     Dimensions,
 } from 'react-native'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
@@ -20,31 +19,9 @@ export function LocationSearchModal({
     visible,
     onClose,
 }: LocationSearchModalProps) {
-    const slideAnim = useRef(new Animated.Value(0)).current
     const { height } = Dimensions.get('window')
 
-    useEffect(() => {
-        if (visible) {
-            Animated.spring(slideAnim, {
-                toValue: 1,
-                useNativeDriver: true,
-                damping: 20,
-                mass: 1,
-                stiffness: 100,
-            }).start()
-        } else {
-            Animated.spring(slideAnim, {
-                toValue: 0,
-                useNativeDriver: true,
-                damping: 20,
-                mass: 1,
-                stiffness: 100,
-            }).start()
-        }
-    }, [visible])
-
     const handleBackdropPress = (event: any) => {
-        // Only close if clicking the backdrop itself
         if (event.target === event.currentTarget) {
             onClose()
         }
@@ -58,43 +35,30 @@ export function LocationSearchModal({
             onRequestClose={onClose}
         >
             <TouchableWithoutFeedback onPress={handleBackdropPress}>
-                <View className="flex-1 bg-black/50 justify-end">
-                    <TouchableWithoutFeedback>
-                        <Animated.View
-                            className="bg-gray-900 rounded-t-3xl overflow-hidden"
-                            style={{
-                                transform: [
-                                    {
-                                        translateY: slideAnim.interpolate({
-                                            inputRange: [0, 1],
-                                            outputRange: [height, 0],
-                                        }),
-                                    },
-                                ],
-                                height: height * 0.75,
-                            }}
-                        >
-                            <View className="flex-row items-center justify-between px-6 py-4 border-b border-gray-800">
-                                <View className="absolute w-full items-center top-2">
-                                    <View className="w-12 h-1.5 rounded-full bg-gray-600" />
-                                </View>
-                                <Text className="text-white text-xl font-semibold mt-3">
-                                    Search Location
-                                </Text>
-                                <Pressable
-                                    onPress={onClose}
-                                    className="w-10 h-10 items-center justify-center mt-3"
-                                >
-                                    <MaterialCommunityIcons
-                                        name="close"
-                                        size={24}
-                                        color="#60A5FA"
-                                    />
-                                </Pressable>
-                            </View>
+                <View className="flex-1 bg-black/50 justify-center items-center px-4">
+                    <View
+                        className="bg-gray-900 w-full rounded-2xl overflow-hidden"
+                        style={{ maxHeight: height * 0.8 }}
+                    >
+                        <View className="flex-row items-center justify-between px-6 py-4 border-b border-gray-800">
+                            <Text className="text-white text-xl font-semibold">
+                                Search Location
+                            </Text>
+                            <Pressable
+                                onPress={onClose}
+                                className="w-10 h-10 items-center justify-center"
+                            >
+                                <MaterialCommunityIcons
+                                    name="close"
+                                    size={24}
+                                    color="#60A5FA"
+                                />
+                            </Pressable>
+                        </View>
+                        <View className="p-4">
                             <LocationSearch onLocationSelected={onClose} />
-                        </Animated.View>
-                    </TouchableWithoutFeedback>
+                        </View>
+                    </View>
                 </View>
             </TouchableWithoutFeedback>
         </Modal>

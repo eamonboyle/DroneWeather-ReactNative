@@ -11,11 +11,13 @@ import { StatusBar } from 'expo-status-bar'
 import { useEffect } from 'react'
 import 'react-native-reanimated'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
+import { LocationProvider } from '@/contexts/LocationContext'
+import { SafeAreaProvider } from 'react-native-safe-area-context'
+import { KeyboardAvoidingView, Platform } from 'react-native'
 
 import { useColorScheme } from '@/hooks/useColorScheme'
 import { WeatherConfigProvider } from '@/contexts/WeatherConfigContext'
 import { WeatherDataProvider } from '@/contexts/WeatherDataContext'
-import { LocationProvider } from '@/contexts/LocationContext'
 
 export {
     // Catch any errors thrown by the Layout component.
@@ -53,9 +55,31 @@ export default function RootLayout() {
     }
 
     return (
-        <LocationProvider>
-            <RootLayoutNav />
-        </LocationProvider>
+        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+            <GestureHandlerRootView style={{ flex: 1 }}>
+                <SafeAreaProvider>
+                    <WeatherConfigProvider>
+                        <WeatherDataProvider>
+                            <LocationProvider>
+                                <Stack
+                                    screenOptions={{
+                                        headerShown: false,
+                                        contentStyle: { backgroundColor: '#111827' },
+                                        animation: Platform.OS === 'android' ? 'none' : 'default',
+                                    }}
+                                >
+                                    <Stack.Screen
+                                        name="(tabs)"
+                                        options={{ headerShown: false }}
+                                    />
+                                </Stack>
+                                <StatusBar style="auto" />
+                            </LocationProvider>
+                        </WeatherDataProvider>
+                    </WeatherConfigProvider>
+                </SafeAreaProvider>
+            </GestureHandlerRootView>
+        </ThemeProvider>
     )
 }
 

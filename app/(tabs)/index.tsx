@@ -4,6 +4,8 @@ import {
     Alert,
     ActivityIndicator,
     Animated,
+    KeyboardAvoidingView,
+    Platform,
 } from 'react-native'
 import { useEffect, useState, useRef } from 'react'
 import * as Location from 'expo-location'
@@ -203,47 +205,54 @@ export default function Home() {
             <Animated.View style={[{ flex: 1, opacity: fadeAnim }]}>
                 <LocationBar locationName={locationName} />
 
-                <View className="flex-1 px-4 pt-4">
-                    {isLoading ? (
-                        renderLoadingState()
-                    ) : (
-                        <>
-                            {renderFlightStatus()}
-
-                            {weatherData && (
-                                <Animated.View
-                                    style={[
-                                        {
-                                            opacity: fadeAnim,
-                                            transform: [{ translateY }],
-                                        },
-                                    ]}
-                                >
-                                    <WeatherGrid
-                                        weatherData={weatherData}
-                                        hourIndex={selectedHour}
-                                    />
-                                </Animated.View>
-                            )}
-                        </>
-                    )}
-                </View>
-
-                <Animated.View
-                    style={[
-                        {
-                            marginTop: 16,
-                            opacity: fadeAnim,
-                            transform: [{ translateY }],
-                        },
-                    ]}
+                <KeyboardAvoidingView
+                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                    style={{ flex: 1 }}
+                    keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
                 >
-                    <HourSelector
-                        selectedHour={selectedHour}
-                        onHourChange={setSelectedHour}
-                        className="mb-4"
-                    />
-                </Animated.View>
+                    <View className="flex-1 px-4 pt-4">
+                        {isLoading ? (
+                            renderLoadingState()
+                        ) : (
+                            <>
+                                {renderFlightStatus()}
+
+                                {weatherData && (
+                                    <Animated.View
+                                        style={[
+                                            {
+                                                opacity: fadeAnim,
+                                                transform: [{ translateY }],
+                                            },
+                                        ]}
+                                    >
+                                        <WeatherGrid
+                                            weatherData={weatherData}
+                                            hourIndex={selectedHour}
+                                        />
+                                    </Animated.View>
+                                )}
+                            </>
+                        )}
+                    </View>
+                </KeyboardAvoidingView>
+
+                <View className="absolute bottom-0 left-0 right-0 bg-gray-900">
+                    <Animated.View
+                        style={[
+                            {
+                                opacity: fadeAnim,
+                                transform: [{ translateY }],
+                            },
+                        ]}
+                    >
+                        <HourSelector
+                            selectedHour={selectedHour}
+                            onHourChange={setSelectedHour}
+                            className="mb-4"
+                        />
+                    </Animated.View>
+                </View>
             </Animated.View>
         </SafeAreaView>
     )
