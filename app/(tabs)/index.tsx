@@ -157,9 +157,9 @@ export default function Home() {
                     colors={gradientColors}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 1 }}
-                    className="p-6 rounded-3xl shadow-lg"
+                    className="p-4 rounded-3xl shadow-lg"
                 >
-                    <View className="flex-row items-center justify-center mb-2">
+                    <View className="flex-row items-center justify-center mb-0 pb-0">
                         <MaterialCommunityIcons
                             name={
                                 flightConditions.isSuitable
@@ -168,9 +168,13 @@ export default function Home() {
                             }
                             size={32}
                             color="white"
-                            style={{ opacity: 0.9 }}
+                            style={{
+                                opacity: 0.9,
+                                marginTop: -5,
+                                paddingTop: 4,
+                            }}
                         />
-                        <Text className="text-2xl text-white font-bold ml-3">
+                        <Text className="text-2xl text-white font-bold ml-3 leading-none pt-1.5">
                             {flightConditions.isSuitable
                                 ? 'Safe to Fly'
                                 : 'Not Safe to Fly'}
